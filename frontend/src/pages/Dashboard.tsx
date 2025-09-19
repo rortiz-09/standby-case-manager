@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Calendar, AlertCircle, ArrowRight, Activity, Upload, Download, FileSpreadsheet } from 'lucide-react';
+import { Search, Filter, Calendar, AlertCircle, ArrowRight, Activity, Upload, Download, RefreshCw, FileText } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { clsx } from 'clsx';
@@ -9,6 +9,10 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/Skeleton';
+import { StatsOverview } from '../components/StatsOverview';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Switch } from '@headlessui/react';
 
 interface Case {
     id: number;
@@ -31,6 +35,7 @@ export default function Dashboard() {
         start_date: '',
         end_date: ''
     });
+    const [autoRefresh, setAutoRefresh] = useState(false);
 
     const { data: cases = [], isLoading, isError } = useQuery({
         queryKey: ['cases', filters],
@@ -52,6 +57,7 @@ export default function Dashboard() {
             return res.data as Case[];
         },
         staleTime: 60000, // 1 minute
+        refetchInterval: autoRefresh ? 30000 : false, // 30s auto-refresh
     });
 
     const getStatusVariant = (status: string) => {
@@ -112,8 +118,45 @@ export default function Dashboard() {
         }
     };
 
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text("Reporte de Casos - Standby Manager", 14, 22);
+        doc.setFontSize(11);
+        doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 30);
+
+        const tableColumn = ["Código", "Servicio", "Estado", "Prioridad", "Responsable", "Actualizado"];
+        const tableRows: any[] = [];
+
+        cases.forEach((c) => {
+            const caseData = [
+                c.codigo,
+                c.servicio_o_plataforma,
+                c.estado,
+                c.prioridad,
+                c.sby_responsable || '-',
+                new Date(c.ultima_actualizacion || new Date()).toLocaleDateString()
+            ];
+            tableRows.push(caseData);
+        });
+
+        // @ts-ignore
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 40,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [79, 70, 229] } // Indigo
+        });
+
+        doc.save("reporte_casos.pdf");
+    };
+
     return (
         <div className="space-y-6">
+            <StatsOverview />
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Tablero de Casos</h1>
@@ -126,6 +169,23 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {/* Auto Refresh Toggle */}
+                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg h-9 px-3 flex items-center gap-2 mr-2">
+                            <RefreshCw size={14} className={clsx("text-slate-500", autoRefresh && "animate-spin text-indigo-500")} />
+                            <Switch
+                                checked={autoRefresh}
+                                onChange={setAutoRefresh}
+                                className={`${autoRefresh ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'
+                                    } relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none`}
+                            >
+                                <span
+                                    className={`${autoRefresh ? 'translate-x-5' : 'translate-x-1'
+                                        } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
+                                />
+                            </Switch>
+                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Auto</span>
+                        </div>
+
                         <input
                             type="file"
                             id="import-file"
@@ -135,19 +195,30 @@ export default function Dashboard() {
                         />
                         <label
                             htmlFor="import-file"
-                            className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
+                            className="flex items-center justify-center w-9 h-9 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
+                            title="Importar"
                         >
                             <Download size={16} />
-                            Importar
                         </label>
 
                         <Button
                             variant="outline"
-                            className="flex items-center gap-2"
+                            className="h-9 px-3 gap-2"
                             onClick={() => handleExport('xlsx')}
+                            title="Exportar Excel"
                         >
                             <Upload size={16} />
-                            Exportar Excel
+                            <span className="hidden sm:inline">Excel</span>
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            className="h-9 px-3 gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 dark:border-red-900/30"
+                            onClick={handleExportPDF}
+                            title="Exportar PDF"
+                        >
+                            <FileText size={16} />
+                            <span className="hidden sm:inline">PDF</span>
                         </Button>
                     </div>
                 </div>
