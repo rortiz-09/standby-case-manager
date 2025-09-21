@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Calendar, AlertCircle, ArrowRight, Activity, Upload, Download, RefreshCw, FileText } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { clsx } from 'clsx';
 import { Input } from '../components/ui/Input';
@@ -13,6 +13,7 @@ import { StatsOverview } from '../components/StatsOverview';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Switch } from '@headlessui/react';
+import { useToast } from '../context/ToastContext';
 
 interface Case {
     id: number;
@@ -111,7 +112,10 @@ export default function Dashboard() {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             // Refresh cases
-            window.location.reload(); // Simple reload for now, or invalidate queries
+            queryClient.invalidateQueries({ queryKey: ['cases'] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
+            showToast('success', 'Importación Exitosa', 'Los casos han sido importados correctamente.');
+            // window.location.reload(); // Removed manual reload
         } catch (error) {
             console.error('Error importing cases:', error);
             alert('Error importing cases. Please check the file format.');
@@ -153,15 +157,54 @@ export default function Dashboard() {
         doc.save("reporte_casos.pdf");
     };
 
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const queryClient = useQueryClient();
+    const { showToast } = useToast();
+
+    // Toggle selection
+    const toggleSelection = (id: number) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const toggleAll = () => {
+        if (selectedIds.length === cases.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(cases.map(c => c.id));
+        }
+    };
+
+    const handleBulkAction = async (action: 'CLOSE' | 'ASSIGN' | 'PRIORITY', value: string) => {
+        if (!confirm(`¿Estás seguro de actualizar ${selectedIds.length} casos?`)) return;
+
+        try {
+            await api.post('/cases/bulk-update', {
+                ids: selectedIds,
+                action,
+                value
+            });
+            showToast('success', 'Actualización Masiva', `Se han actualizado ${selectedIds.length} casos correctamente.`);
+            setSelectedIds([]);
+            queryClient.invalidateQueries({ queryKey: ['cases'] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
+        } catch (error: any) {
+            showToast('error', 'Error', 'No se pudo completar la actualización masiva.');
+        }
+    };
+
     return (
-        <div className="space-y-6">
-            <StatsOverview />
+        <div className="space-y-6 pb-20 relative">
+            <StatsOverview autoRefresh={autoRefresh} />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                {/* Same header content */}
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Tablero de Casos</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Monitoreo y gestión de incidentes en tiempo real.</p>
                 </div>
+                {/* Same buttons */}
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
                         <Activity size={14} className="text-indigo-500" />
@@ -224,12 +267,11 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Filters */}
+            {/* Filters Section (Preserved) */}
             <Card className="p-5 space-y-4">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-white font-medium mb-2">
                     <Filter size={16} /> Filtros de Búsqueda
                 </div>
-
                 {/* Date Filters - Top Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
                     <div className="relative">
@@ -320,6 +362,14 @@ export default function Dashboard() {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
                             <tr>
+                                <th className="p-4 w-4">
+                                    <input
+                                        type="checkbox"
+                                        className="rounded border-slate-300 dark:border-slate-600"
+                                        checked={cases.length > 0 && selectedIds.length === cases.length}
+                                        onChange={toggleAll}
+                                    />
+                                </th>
                                 <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Código</th>
                                 <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Servicio</th>
                                 <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Estado</th>
@@ -333,6 +383,7 @@ export default function Dashboard() {
                             {isLoading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i}>
+                                        <td className="p-4"><Skeleton className="h-4 w-4" /></td>
                                         <td className="p-4"><Skeleton className="h-4 w-20" /></td>
                                         <td className="p-4"><Skeleton className="h-4 w-32" /></td>
                                         <td className="p-4"><Skeleton className="h-6 w-24 rounded-full" /></td>
@@ -344,12 +395,20 @@ export default function Dashboard() {
                                 ))
                             ) : isError ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-red-500">
+                                    <td colSpan={8} className="p-8 text-center text-red-500">
                                         Error al cargar los casos. Por favor intente nuevamente.
                                     </td>
                                 </tr>
                             ) : Array.isArray(cases) && cases.map((c) => (
-                                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                <tr key={c.id} className={clsx("hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group", selectedIds.includes(c.id) ? "bg-indigo-50/50 dark:bg-indigo-900/20" : "")}>
+                                    <td className="p-4">
+                                        <input
+                                            type="checkbox"
+                                            className="rounded border-slate-300 dark:border-slate-600"
+                                            checked={selectedIds.includes(c.id)}
+                                            onChange={() => toggleSelection(c.id)}
+                                        />
+                                    </td>
                                     <td className="p-4 font-mono text-sm font-medium text-slate-900 dark:text-white">{c.codigo}</td>
                                     <td className="p-4 text-sm text-slate-600 dark:text-gray-300">{c.servicio_o_plataforma}</td>
                                     <td className="p-4">
@@ -378,7 +437,7 @@ export default function Dashboard() {
                             ))}
                             {!isLoading && !isError && (!cases || cases.length === 0) && (
                                 <tr>
-                                    <td colSpan={7} className="p-12 text-center">
+                                    <td colSpan={8} className="p-12 text-center">
                                         <div className="flex flex-col items-center justify-center text-gray-500">
                                             <AlertCircle size={43} className="mb-2 opacity-50" />
                                             <p className="text-lg font-medium text-gray-400">No se encontraron casos</p>
@@ -391,6 +450,28 @@ export default function Dashboard() {
                     </table>
                 </div>
             </Card>
+
+            {/* Bulk Actions Floating Bar */}
+            {selectedIds.length > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-xl flex items-center gap-4 animate-in slide-in-from-bottom duration-300 z-50">
+                    <span className="font-semibold text-sm">{selectedIds.length} seleccionados</span>
+                    <div className="h-4 w-px bg-white/20 dark:bg-black/20" />
+                    <button
+                        onClick={() => handleBulkAction('CLOSE', '')}
+                        className="text-sm hover:text-indigo-400 dark:hover:text-indigo-600 transition-colors font-medium"
+                    >
+                        Cerrar Casos
+                    </button>
+                    {/* Add more bulk actions here if needed */}
+                    <button
+                        onClick={() => setSelectedIds([])}
+                        className="ml-2 p-1 hover:bg-white/10 dark:hover:bg-black/10 rounded-full"
+                    >
+                        <span className="sr-only">Cancelar</span>
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

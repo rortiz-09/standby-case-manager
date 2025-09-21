@@ -1,7 +1,8 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import Column, JSON
 
 class UserRole(str, Enum):
     CONSULTA = "CONSULTA"
@@ -76,6 +77,7 @@ class Case(SQLModel, table=True):
     
     # Relationship
     observaciones_list: List["Observation"] = Relationship(back_populates="case")
+    audit_logs: List["CaseAudit"] = Relationship()
 
 class CaseCreate(SQLModel):
     codigo: str
@@ -107,6 +109,22 @@ class Observation(SQLModel, table=True):
 
 class ObservationUpdate(SQLModel):
     content: str
+
+class CaseAuditType(str, Enum):
+    CREATE = "CREATE"
+    UPDATE = "UPDATE"
+    COMMENT = "COMMENT"
+    BULK_UPDATE = "BULK_UPDATE"
+
+class CaseAudit(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    case_id: int = Field(foreign_key="case.id")
+    user_id: int = Field(foreign_key="user.id")
+    action: CaseAuditType
+    details: Dict = Field(default={}, sa_column=Column(JSON))
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+    user: Optional[User] = Relationship()
 
 class CaseRead(SQLModel):
     id: int

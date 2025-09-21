@@ -5,7 +5,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 from app.database import get_session
 from sqlalchemy.orm import selectinload
-from app.models import Case, CaseCreate, CaseUpdate, User, UserRole, CaseStatus, Priority, Observation, CaseReadWithDetails, ObservationUpdate
+from app.models import Case, CaseCreate, CaseUpdate, User, UserRole, CaseStatus, Priority, Observation, CaseReadWithDetails, ObservationUpdate, CaseAudit, CaseAuditType, CaseRead
 from app.auth import get_current_user
 from fastapi_cache.decorator import cache
 
@@ -144,8 +144,29 @@ async def update_case(case_id: int, case_update: CaseUpdate, session: AsyncSessi
     if "observaciones" in case_data:
         del case_data["observaciones"]
 
+    # Calculate diffs for audit
+    audit_details = {}
     for key, value in case_data.items():
-        setattr(db_case, key, value)
+        if key == "observaciones": continue
+        old_val = getattr(db_case, key)
+        # Handle Enums comparison
+        if isinstance(old_val, (CaseStatus, Priority)):
+            old_val = old_val.value
+        
+        if old_val != value:
+            audit_details[key] = {"old": old_val, "new": value}
+            setattr(db_case, key, value)
+    
+    # Create Audit Log if there are changes
+    if audit_details:
+        audit = CaseAudit(
+            case_id=db_case.id,
+            user_id=current_user.id,
+            action=CaseAuditType.UPDATE,
+            details=audit_details,
+            timestamp=datetime.utcnow()
+        )
+        session.add(audit)
     
     db_case.updated_at = datetime.utcnow()
     session.add(db_case)
@@ -174,3 +195,104 @@ async def update_observation(
     await session.commit()
     await session.refresh(obs)
     return obs
+
+from app.schemas import BulkUpdateSchema
+
+@router.post("/bulk-update", status_code=200)
+async def bulk_update_cases(
+    payload: BulkUpdateSchema,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.rol not in [UserRole.INGRESO, UserRole.ADMIN]:
+        raise HTTPException(status_code=403, detail="Not authorized to perform bulk updates")
+
+    query = select(Case).where(Case.id.in_(payload.ids))
+    result = await session.execute(query)
+    cases = result.scalars().all()
+    
+    updated_count = 0
+    
+    for case in cases:
+        audit_details = {}
+        
+        if payload.action == "CLOSE":
+             if case.estado != CaseStatus.CERRADO:
+                 audit_details["estado"] = {"old": case.estado, "new": CaseStatus.CERRADO}
+                 case.estado = CaseStatus.CERRADO
+        
+        elif payload.action == "ASSIGN":
+             if case.sby_responsable != payload.value:
+                  audit_details["sby_responsable"] = {"old": case.sby_responsable, "new": payload.value}
+                  case.sby_responsable = payload.value
+
+        elif payload.action == "PRIORITY":
+             try:
+                 new_prio = Priority(payload.value)
+                 if case.prioridad != new_prio:
+                     audit_details["prioridad"] = {"old": case.prioridad, "new": new_prio}
+                     case.prioridad = new_prio
+             except ValueError:
+                 pass # Ignore invalid enum values
+
+        if audit_details:
+            case.updated_at = datetime.utcnow()
+            session.add(case)
+            
+            # Create Audit
+            audit = CaseAudit(
+                case_id=case.id,
+                user_id=current_user.id,
+                action=CaseAuditType.BULK_UPDATE,
+                details=audit_details,
+                timestamp=datetime.utcnow()
+            )
+            session.add(audit)
+            updated_count += 1
+            
+    await session.commit()
+    return {"message": f"Updated {updated_count} cases successfully"}
+
+@router.get("/{case_id}/timeline")
+async def get_case_timeline(
+    case_id: int,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    # Fetch observations
+    obs_query = select(Observation).where(Observation.case_id == case_id)
+    obs_result = await session.execute(obs_query)
+    observations = obs_result.scalars().all()
+    
+    # Fetch audits
+    audit_query = select(CaseAudit).where(CaseAudit.case_id == case_id).options(selectinload(CaseAudit.user))
+    audit_result = await session.execute(audit_query)
+    audits = audit_result.scalars().all()
+    
+    timeline = []
+    
+    for obs in observations:
+        # Fetch user name for obs? Ideally join or preload
+        # For simplicity assuming created_by_id logic or we can preload User in Observation too
+        timeline.append({
+            "type": "OBSERVATION",
+            "id": obs.id,
+            "content": obs.content,
+            "created_at": obs.created_at,
+            "user_id": obs.created_by_id
+        })
+        
+    for audit in audits:
+        timeline.append({
+            "type": "AUDIT",
+            "id": audit.id,
+            "action": audit.action,
+            "details": audit.details,
+            "created_at": audit.timestamp,
+            "user_name": audit.user.nombre if audit.user else "Unknown"
+        })
+        
+    # Sort by date
+    timeline.sort(key=lambda x: x["created_at"])
+    
+    return timeline

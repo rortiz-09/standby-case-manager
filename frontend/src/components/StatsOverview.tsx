@@ -11,14 +11,19 @@ interface StatsData {
     cases_last_24h: number;
 }
 
-export function StatsOverview() {
+interface StatsOverviewProps {
+    autoRefresh?: boolean;
+}
+
+export function StatsOverview({ autoRefresh = false }: StatsOverviewProps) {
     const { data: stats, isLoading } = useQuery({
         queryKey: ['stats'],
         queryFn: async () => {
             const res = await api.get('/stats');
             return res.data as StatsData;
         },
-        staleTime: 30000, // 30s
+        staleTime: 30000,
+        refetchInterval: autoRefresh ? 30000 : false,
     });
 
     if (isLoading || !stats) {

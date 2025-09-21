@@ -20,10 +20,10 @@ async def get_stats(session: AsyncSession = Depends(get_session)):
         count = (await session.exec(select(func.count()).select_from(Case).where(Case.estado == status))).one()
         by_status[status.value] = count
 
-    # By Priority
+    # By Priority (Active Cases Only)
     by_priority = {}
     for priority in Priority:
-        count = (await session.exec(select(func.count()).select_from(Case).where(Case.prioridad == priority))).one()
+        count = (await session.exec(select(func.count()).select_from(Case).where(Case.prioridad == priority, Case.estado != CaseStatus.CERRADO))).one()
         by_priority[priority.value] = count
 
     # Cases Last 24h
