@@ -14,6 +14,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Switch } from '@headlessui/react';
 import { useToast } from '../context/ToastContext';
+import { ConfirmationModal } from '../components/ui/ConfirmationModal';
 
 interface Case {
     id: number;
@@ -176,14 +177,32 @@ export default function Dashboard() {
         }
     };
 
-    const handleBulkAction = async (action: 'CLOSE' | 'ASSIGN' | 'PRIORITY', value: string) => {
-        if (!confirm(`¿Estás seguro de actualizar ${selectedIds.length} casos?`)) return;
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: null as 'CLOSE' | 'ASSIGN' | 'PRIORITY' | null,
+        value: ''
+    });
+
+    const handleBulkActionRequest = (action: 'CLOSE' | 'ASSIGN' | 'PRIORITY', value: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: action === 'CLOSE' ? 'Cerrar Casos' : 'Actualización Masiva',
+            message: `¿Estás seguro de que deseas actualizar ${selectedIds.length} casos seleccionados? Esta acción no se puede deshacer.`,
+            action,
+            value
+        });
+    };
+
+    const executeBulkAction = async () => {
+        if (!confirmModal.action) return;
 
         try {
             await api.post('/cases/bulk-update', {
                 ids: selectedIds,
-                action,
-                value
+                action: confirmModal.action,
+                value: confirmModal.value
             });
             showToast('success', 'Actualización Masiva', `Se han actualizado ${selectedIds.length} casos correctamente.`);
             setSelectedIds([]);
@@ -457,7 +476,7 @@ export default function Dashboard() {
                     <span className="font-semibold text-sm">{selectedIds.length} seleccionados</span>
                     <div className="h-4 w-px bg-white/20 dark:bg-black/20" />
                     <button
-                        onClick={() => handleBulkAction('CLOSE', '')}
+                        onClick={() => handleBulkActionRequest('CLOSE', '')}
                         className="text-sm hover:text-indigo-400 dark:hover:text-indigo-600 transition-colors font-medium"
                     >
                         Cerrar Casos
@@ -472,6 +491,16 @@ export default function Dashboard() {
                     </button>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={executeBulkAction}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText="Confirmar"
+                variant={confirmModal.action === 'CLOSE' ? 'danger' : 'warning'}
+            />
         </div>
     );
 }
