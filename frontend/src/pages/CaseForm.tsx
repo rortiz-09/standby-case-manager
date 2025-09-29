@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -16,13 +16,6 @@ interface CaseFormData {
     sby_responsable: string;
     novedades_y_comentarios: string;
     observaciones: string;
-}
-
-interface Observation {
-    id: number;
-    content: string;
-    created_at: string;
-    created_by_id: number;
 }
 
 export default function CaseForm() {
@@ -79,6 +72,7 @@ export default function CaseForm() {
         mutationFn: (data: CaseFormData) => api.post('/cases/', data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cases'] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
             showToast('success', 'Caso creado', 'El nuevo caso ha sido registrado.');
             navigate('/');
         },
@@ -93,6 +87,7 @@ export default function CaseForm() {
             queryClient.invalidateQueries({ queryKey: ['cases'] });
             queryClient.invalidateQueries({ queryKey: ['case', id] });
             queryClient.invalidateQueries({ queryKey: ['timeline', id] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
             showToast('success', 'Caso actualizado', 'Los cambios han sido guardados correctamente.');
             navigate('/');
         },
