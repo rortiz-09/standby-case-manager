@@ -102,7 +102,7 @@ export default function Layout() {
                         {!isCollapsed && (
                             <div className="flex flex-col min-w-0 overflow-hidden">
                                 <p className="text-sm font-medium truncate dark:text-white">{user?.nombre}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.rol}</p>
+                                <span className="text-slate-500 dark:text-slate-400 text-xs">v2.0.4</span>er?.rol}</p>
                                 <div className="mt-2 pt-2 border-t border-slate-200 dark:border-vscode-border">
                                     <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center font-mono">
                                         v2.0.2
@@ -110,43 +110,45 @@ export default function Layout() {
                                 </div>
                             </div>
                         )}
-                    </div>
                 </div>
-            </aside>
-
-            {/* Mobile Overlay */}
-            {isMobile && isMobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-10 backdrop-blur-sm"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
-            )}
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                {/* Mobile Header */}
-                {isMobile && (
-                    <header className="h-16 bg-vscode-light-bg dark:bg-vscode-bg border-b border-vscode-light-border dark:border-vscode-border flex items-center justify-between px-4 shadow-sm z-10">
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={() => setIsMobileMenuOpen(true)}
-                                className="p-2 -ml-2 text-slate-600 dark:text-vscode-text hover:bg-vscode-light-hover dark:hover:bg-vscode-hover rounded-lg"
-                            >
-                                <Menu size={22} />
-                            </button>
-                            <h2 className="text-lg font-semibold text-slate-800 dark:text-white truncate">
-                                SCM
-                            </h2>
-                        </div>
-                    </header>
-                )}
-
-                <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 scroll-smooth bg-vscode-light-bg dark:bg-vscode-bg">
-                    <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
-                        <Outlet />
-                    </div>
-                </div>
-            </main>
         </div>
+            </aside >
+
+        {/* Mobile Overlay */ }
+    {
+        isMobile && isMobileMenuOpen && (
+            <div
+                className="fixed inset-0 bg-black/50 z-10 backdrop-blur-sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+            />
+        )
+    }
+
+    {/* Main Content */ }
+    <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Mobile Header */}
+        {isMobile && (
+            <header className="h-16 bg-vscode-light-bg dark:bg-vscode-bg border-b border-vscode-light-border dark:border-vscode-border flex items-center justify-between px-4 shadow-sm z-10">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="p-2 -ml-2 text-slate-600 dark:text-vscode-text hover:bg-vscode-light-hover dark:hover:bg-vscode-hover rounded-lg"
+                    >
+                        <Menu size={22} />
+                    </button>
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white truncate">
+                        SCM
+                    </h2>
+                </div>
+            </header>
+        )}
+
+        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 scroll-smooth bg-vscode-light-bg dark:bg-vscode-bg">
+            <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+                <Outlet />
+            </div>
+        </div>
+    </main>
+        </div >
     );
 }
