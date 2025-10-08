@@ -28,7 +28,6 @@ export function Timeline({ items, currentUserId }: TimelineProps) {
         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent dark:before:via-slate-700">
             {items.map((item, index) => {
                 const isMe = item.type === 'OBSERVATION' && item.user_id === currentUserId;
-                const isSystem = item.type === 'AUDIT';
 
                 return (
                     <motion.div
@@ -92,6 +91,7 @@ export function Timeline({ items, currentUserId }: TimelineProps) {
                                     isMe ? "text-right" : "text-left"
                                 )}>
                                     <ReactMarkdown components={{
+                                        // @ts-ignore
                                         p: ({ node, ...props }) => <p className="mb-0 break-words whitespace-pre-wrap" {...props} />
                                     }}>
                                         {item.content || ''}
