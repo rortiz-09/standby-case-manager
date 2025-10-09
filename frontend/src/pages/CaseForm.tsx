@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Save, ArrowLeft, Clock } from 'lucide-react';
+import { Save, ArrowLeft, Clock, Maximize2 } from 'lucide-react';
 import api from '../api/axios';
 import { useToast } from '../context/ToastContext';
 import { clsx } from 'clsx';
 import { Timeline } from '../components/Timeline';
+import { TimelineModal } from '../components/ui/TimelineModal';
 
 interface CaseFormData {
     codigo?: string;
@@ -22,6 +23,7 @@ export default function CaseForm() {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEdit = !!id;
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const { register, handleSubmit, setValue, formState: { errors } } = useForm<CaseFormData>();
     const queryClient = useQueryClient();
     const { showToast } = useToast();
@@ -203,8 +205,16 @@ export default function CaseForm() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-2 flex items-center gap-2">
-                            <Clock size={14} /> Historial de Observaciones
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-2 flex items-center justify-between">
+                            <span className="flex items-center gap-2"><Clock size={14} /> Historial de Observaciones</span>
+                            <button
+                                type="button"
+                                onClick={() => setIsHistoryOpen(true)}
+                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                                title="Ver pantalla completa"
+                            >
+                                <Maximize2 size={12} /> Ampliar
+                            </button>
                         </label>
                         <div className="w-full h-96 rounded-lg border border-slate-300 dark:border-vscode-border bg-slate-50/50 dark:bg-vscode-bg p-4 overflow-y-auto custom-scrollbar">
                             <Timeline items={timeline} currentUserId={currentUserId} />
@@ -245,6 +255,13 @@ export default function CaseForm() {
                     </button>
                 </div>
             </form>
+
+            <TimelineModal
+                isOpen={isHistoryOpen}
+                onClose={() => setIsHistoryOpen(false)}
+                items={timeline}
+                currentUserId={currentUserId}
+            />
         </div>
     );
 }
