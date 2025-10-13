@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Clock } from 'lucide-react';
 import { Timeline } from '../Timeline';
-import { clsx } from 'clsx';
+
 
 interface TimelineModalProps {
     isOpen: boolean;
