@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Calendar, AlertCircle, ArrowRight, Activity, Upload, Download, RefreshCw, FileText } from 'lucide-react';
+import { Search, Filter, AlertCircle, ArrowRight, Activity, Upload, Download, RefreshCw, FileText } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { clsx } from 'clsx';
@@ -15,6 +15,7 @@ import autoTable from 'jspdf-autotable';
 import { Switch } from '@headlessui/react';
 import { useToast } from '../context/ToastContext';
 import { ConfirmationModal } from '../components/ui/ConfirmationModal';
+import { DateRangeFilter } from '../components/ui/DateRangeFilter';
 
 interface Case {
     id: number;
@@ -292,32 +293,13 @@ export default function Dashboard() {
                     <Filter size={16} /> Filtros de Búsqueda
                 </div>
                 {/* Date Filters - Top Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
-                    <div className="relative">
-                        <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1 ml-1">Fecha Inicio</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={16} />
-                            <Input
-                                type="date"
-                                className="pl-10"
-                                value={filters.start_date}
-                                onChange={e => setFilters({ ...filters, start_date: e.target.value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="relative">
-                        <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1 ml-1">Fecha Fin</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={16} />
-                            <Input
-                                type="date"
-                                className="pl-10"
-                                value={filters.end_date}
-                                onChange={e => setFilters({ ...filters, end_date: e.target.value })}
-                            />
-                        </div>
-                    </div>
+                <div className="flex flex-wrap items-center gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
+                    <DateRangeFilter
+                        startDate={filters.start_date}
+                        endDate={filters.end_date}
+                        onRangeChange={(start, end) => setFilters({ ...filters, start_date: start, end_date: end })}
+                    />
+                    {/* Add Command Palette trigger here later maybe, or just keep filters clean */}
                 </div>
 
                 {/* Other Filters */}
