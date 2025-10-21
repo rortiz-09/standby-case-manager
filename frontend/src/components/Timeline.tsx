@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, AlertTriangle, User, MessageSquare } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { clsx } from 'clsx';
+import { Avatar } from './ui/Avatar';
 
 interface TimelineItem {
     type: 'OBSERVATION' | 'AUDIT';
@@ -42,11 +43,12 @@ export function Timeline({ items, currentUserId }: TimelineProps) {
                     >
                         {/* Icon / Dot */}
                         <div className={clsx(
-                            "flex items-center justify-center w-10 h-10 rounded-full border border-white dark:border-gray-900 bg-slate-50 dark:bg-slate-800 shadow shrink-0 z-10",
-                            "md:absolute md:left-1/2 md:-translate-x-1/2" // Center line position
+                            "flex items-center justify-center w-10 h-10 rounded-full shadow shrink-0 z-10 bg-white dark:bg-slate-800",
+                            "md:absolute md:left-1/2 md:-translate-x-1/2", // Center line position
+                            item.type === 'OBSERVATION' ? "p-0 border-0" : "border border-white dark:border-gray-900"
                         )}>
                             {item.type === 'OBSERVATION' ? (
-                                <MessageSquare size={16} className="text-indigo-500" />
+                                <Avatar name={item.user_name || 'Desconocido'} size="md" />
                             ) : item.action === 'UPDATE' ? (
                                 <ArrowRight size={16} className="text-blue-500" />
                             ) : item.action === 'BULK_UPDATE' ? (
