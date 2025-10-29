@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { ArrowRight, AlertTriangle, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { clsx } from 'clsx';
