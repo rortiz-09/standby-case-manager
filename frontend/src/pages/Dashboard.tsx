@@ -293,67 +293,68 @@ export default function Dashboard() {
                     <Filter size={16} /> Filtros de Búsqueda
                 </div>
                 {/* Date Filters - Top Row */}
-                <div className="flex flex-wrap items-center gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
-                    <DateRangeFilter
-                        startDate={filters.start_date}
-                        endDate={filters.end_date}
-                        onRangeChange={(start, end) => setFilters({ ...filters, start_date: start, end_date: end })}
-                    />
-                    {/* Add Command Palette trigger here later maybe, or just keep filters clean */}
-                </div>
-
-                {/* Other Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                    <div className="relative lg:col-span-2 xl:col-span-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={16} />
-                        <Input
-                            type="text"
-                            placeholder="Buscar por código o motivo..."
-                            className="pl-10"
-                            value={filters.search}
-                            onChange={e => setFilters({ ...filters, search: e.target.value })}
+                <div className="flex flex-col gap-4 relative z-20">
+                    <div className="flex flex-wrap items-center gap-4">
+                        <DateRangeFilter
+                            startDate={filters.start_date}
+                            endDate={filters.end_date}
+                            onRangeChange={(start, end) => setFilters({ ...filters, start_date: start, end_date: end })}
                         />
+
+                        <select
+                            className="w-40 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-500/50"
+                            value={filters.status}
+                            onChange={e => setFilters({ ...filters, status: e.target.value })}
+                        >
+                            <option value="">Todos los Estados</option>
+                            <option value="ABIERTO">Abierto</option>
+                            <option value="STANDBY">Standby</option>
+                            <option value="EN_MONITOREO">En Monitoreo</option>
+                            <option value="CERRADO">Cerrado</option>
+                        </select>
+
+                        <select
+                            className="w-40 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-500/50"
+                            value={filters.priority}
+                            onChange={e => setFilters({ ...filters, priority: e.target.value })}
+                        >
+                            <option value="">Todas las Prioridades</option>
+                            <option value="CRITICO">Crítico</option>
+                            <option value="ALTO">Alto</option>
+                            <option value="MEDIO">Medio</option>
+                            <option value="BAJO">Bajo</option>
+                        </select>
+
+                        {/* Expanded Search */}
+                        <div className="flex-1 min-w-[200px] relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={16} />
+                            <Input
+                                type="text"
+                                placeholder="Buscar..."
+                                className="pl-10 w-full"
+                                value={filters.search}
+                                onChange={e => setFilters({ ...filters, search: e.target.value })}
+                            />
+                        </div>
                     </div>
 
-                    <select
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-500/50"
-                        value={filters.status}
-                        onChange={e => setFilters({ ...filters, status: e.target.value })}
-                    >
-                        <option value="" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Todos los Estados</option>
-                        <option value="ABIERTO" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Abierto</option>
-                        <option value="STANDBY" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Standby</option>
-                        <option value="EN_MONITOREO" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">En Monitoreo</option>
-                        <option value="CERRADO" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Cerrado</option>
-                    </select>
-
-                    <select
-                        className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
-                        value={filters.priority}
-                        onChange={e => setFilters({ ...filters, priority: e.target.value })}
-                    >
-                        <option value="" className="bg-gray-900">Todas las Prioridades</option>
-                        <option value="CRITICO" className="bg-gray-900">Crítico</option>
-                        <option value="ALTO" className="bg-gray-900">Alto</option>
-                        <option value="MEDIO" className="bg-gray-900">Medio</option>
-                        <option value="BAJO" className="bg-gray-900">Bajo</option>
-                    </select>
-
-                    <Input
-                        type="text"
-                        placeholder="Servicio..."
-                        value={filters.service}
-                        onChange={e => setFilters({ ...filters, service: e.target.value })}
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input
-                        type="text"
-                        placeholder="Responsable..."
-                        value={filters.sby_responsable}
-                        onChange={e => setFilters({ ...filters, sby_responsable: e.target.value })}
-                    />
+                    {/* Secondary Filters */}
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                        <Input
+                            type="text"
+                            placeholder="Servicio..."
+                            className="w-40"
+                            value={filters.service}
+                            onChange={e => setFilters({ ...filters, service: e.target.value })}
+                        />
+                        <Input
+                            type="text"
+                            placeholder="Responsable..."
+                            className="w-40"
+                            value={filters.sby_responsable}
+                            onChange={e => setFilters({ ...filters, sby_responsable: e.target.value })}
+                        />
+                    </div>
                 </div>
             </Card>
 
