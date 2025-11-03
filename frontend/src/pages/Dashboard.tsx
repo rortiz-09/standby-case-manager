@@ -288,7 +288,7 @@ export default function Dashboard() {
             </div>
 
             {/* Filters Section (Preserved) */}
-            <Card className="p-5 space-y-4">
+            <Card className="p-5 space-y-4 relative z-30 overflow-visible">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-white font-medium mb-2">
                     <Filter size={16} /> Filtros de Búsqueda
                 </div>
@@ -302,7 +302,7 @@ export default function Dashboard() {
                         />
 
                         <select
-                            className="w-40 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-500/50"
+                            className="w-40 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-blue-500/50"
                             value={filters.status}
                             onChange={e => setFilters({ ...filters, status: e.target.value })}
                         >
@@ -314,7 +314,7 @@ export default function Dashboard() {
                         </select>
 
                         <select
-                            className="w-40 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-500/50"
+                            className="w-40 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-blue-500/50"
                             value={filters.priority}
                             onChange={e => setFilters({ ...filters, priority: e.target.value })}
                         >
@@ -359,7 +359,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Table */}
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden relative z-0">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
