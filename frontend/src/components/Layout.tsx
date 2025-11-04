@@ -105,7 +105,7 @@ export default function Layout() {
                                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.rol}</p>
                                 <div className="mt-2 pt-2 border-t border-slate-200 dark:border-vscode-border">
                                     <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center font-mono">
-                                        v2.1.1
+                                        v2.1.2
                                     </p>
                                 </div>
                             </div>
