@@ -10,9 +10,10 @@ import { useTheme } from '../context/ThemeContext';
 
 interface UserMenuProps {
     isCollapsed: boolean;
+    appVersion: string;
 }
 
-export default function UserMenu({ isCollapsed }: UserMenuProps) {
+export default function UserMenu({ isCollapsed, appVersion }: UserMenuProps) {
     const navigate = useNavigate();
     const { showToast } = useToast();
     const { theme, toggleTheme } = useTheme();
@@ -48,11 +49,26 @@ export default function UserMenu({ isCollapsed }: UserMenuProps) {
 
     return (
         <>
-            <Menu as="div" className="relative inline-block text-left">
-                <Menu.Button className="flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-vscode-hover p-2 rounded-lg transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-white font-bold">
+            <Menu as="div" className={clsx("relative inline-block text-left", !isCollapsed && "w-full")}>
+                <Menu.Button className={clsx(
+                    "flex items-center gap-3 p-2 rounded-lg transition-colors w-full outline-none",
+                    "hover:bg-slate-200 dark:hover:bg-vscode-hover",
+                    isCollapsed ? "justify-center" : "justify-start"
+                )}>
+                    <div className="w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-white font-bold shrink-0">
                         {user.nombre.charAt(0).toUpperCase()}
                     </div>
+                    {!isCollapsed && (
+                        <div className="flex flex-col min-w-0 text-left overflow-hidden">
+                            <p className="text-sm font-medium truncate dark:text-white">{user.nombre}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.rol}</p>
+                            <div className="mt-1 pt-1 border-t border-slate-200 dark:border-vscode-border w-full">
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                                    {appVersion}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </Menu.Button>
 
                 <Transition
