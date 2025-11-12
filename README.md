@@ -15,7 +15,9 @@
 ### ✨ Características Principales
 
 * **🚀 Gestión en Tiempo Real**: Actualizaciones instantáneas de casos y estados.
-* **🔍 Filtrado Avanzado**: Búsqueda potente por fecha, prioridad, estado y responsable.
+* **🔍 Filtrado Avanzado**: Búsqueda potente por fecha (presets 1M/3M/6M), prioridad, estado y responsable.
+* **⌨️ Command Palette**: Navegación rápida y acciones globales con `Ctrl + K`.
+* **👤 Smart Avatars**: Identificación visual instantánea con avatares generados por hash.
 * **🌍 Soporte de Zona Horaria**: Detección automática de la zona horaria del usuario para búsquedas precisas.
 * **🔒 Seguridad**: Autenticación robusta y gestión de roles (Admin/Ingreso/Consulta).
 * **🐳 Dockerizado**: Despliegue sencillo y consistente en cualquier entorno.
