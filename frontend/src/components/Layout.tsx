@@ -98,7 +98,7 @@ export default function Layout() {
                 {/* Sidebar Footer */}
                 <div className="p-4 border-t border-vscode-light-border dark:border-vscode-border flex flex-col gap-4">
                     <div className={clsx("flex items-center gap-2", isCollapsed ? "justify-center" : "")}>
-                        <UserMenu isCollapsed={isCollapsed} appVersion="v2.1.5" />
+                        <UserMenu isCollapsed={isCollapsed} appVersion="v2.1.6" />
                     </div>
                 </div>
             </aside >
@@ -136,9 +136,9 @@ export default function Layout() {
                     <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
                         <Outlet />
                     </div>
-                    <footer className="mt-8 py-6 border-t border-slate-200 dark:border-white/5 mx-6">
-                        <p className="text-center text-xs text-slate-400 dark:text-slate-500 font-medium">
-                            2025© todos los derechos reservados
+                    <footer className="mt-auto py-4 mx-6 opacity-60 hover:opacity-100 transition-opacity">
+                        <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 font-medium tracking-wide">
+                            2025 © TODOS LOS DERECHOS RESERVADOS
                         </p>
                     </footer>
                 </div>
