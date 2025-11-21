@@ -8,19 +8,26 @@ from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.database import engine
+from fastapi.staticfiles import StaticFiles
 
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 import os
 
-app = FastAPI(title="Standby Case Manager")
+app = FastAPI(
+    title="Standby Case Manager API",
+    version="1.0.0",
+    description="API for managing operation cases"
+)
 
-origins = ["*"]
+# Mount uploads directory to serve files
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,6 +36,8 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(cases.router)
 app.include_router(users.router)
+app.include_router(audit.router)
+app.include_router(files.router)
 from app.routers import import_export
 app.include_router(import_export.router)
 from app.routers import stats

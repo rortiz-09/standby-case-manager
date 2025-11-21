@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Save, ArrowLeft, Clock, Maximize2 } from 'lucide-react';
+import { Save, ArrowLeft, Clock, Maximize2, FileText, Trash2, Download } from 'lucide-react';
+import FileUploader from '../components/ui/FileUploader';
 import api from '../api/axios';
 import { useToast } from '../context/ToastContext';
 import { clsx } from 'clsx';
@@ -97,6 +98,23 @@ export default function CaseForm() {
             showToast('error', 'Error', error.response?.data?.detail || 'Error al actualizar caso');
         }
     });
+
+    // Refresh attachments after upload
+    const handleUploadComplete = () => {
+        queryClient.invalidateQueries({ queryKey: ['case', id] });
+    };
+
+    const handleDeleteAttachment = async (attachmentId: number) => {
+        if (!confirm('¿Estás seguro de eliminar este archivo?')) return;
+        try {
+            await api.delete(`/cases/attachments/${attachmentId}`);
+            showToast('success', 'Archivo eliminado', 'El archivo ha sido eliminado correctamente.');
+            queryClient.invalidateQueries({ queryKey: ['case', id] });
+        } catch (error) {
+            console.error(error);
+            showToast('error', 'Error', 'No se pudo eliminar el archivo.');
+        }
+    };
 
     const onSubmit = (data: CaseFormData) => {
         if (isEdit) {
@@ -202,6 +220,68 @@ export default function CaseForm() {
                         placeholder="Descripción detallada del caso..."
                     />
                 </div>
+
+                {/* Evidence Vault */}
+                {isEdit && (
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-4">
+                            Bóveda de Evidencias
+                        </label>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* List of attachments */}
+                            <div className="space-y-3">
+                                {caseData?.attachments && caseData.attachments.length > 0 ? (
+                                    caseData.attachments.map((file: any) => (
+                                        <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-vscode-activity rounded-lg border border-slate-200 dark:border-vscode-border group">
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                                    <FileText size={18} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate" title={file.filename}>
+                                                        {file.filename}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                        {(file.file_size / 1024).toFixed(1)} KB • {new Date(file.uploaded_at).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                <a
+                                                    href={`http://localhost:8000/${file.file_path.replace(/\\/g, '/')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 rounded-md transition-colors"
+                                                    title="Descargar"
+                                                >
+                                                    <Download size={16} />
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteAttachment(file.id)}
+                                                    className="p-1.5 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 rounded-md transition-colors"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-slate-400 dark:text-slate-500 text-sm italic border border-dashed border-slate-200 dark:border-vscode-border rounded-lg">
+                                        No hay evidencias adjuntas
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Uploader */}
+                            <div>
+                                <FileUploader caseId={Number(id)} onUploadComplete={handleUploadComplete} />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>

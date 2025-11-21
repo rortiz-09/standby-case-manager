@@ -110,7 +110,7 @@ async def read_cases(
 
 @router.get("/{case_id}", response_model=CaseReadWithDetails)
 async def read_case(case_id: int, session: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user)):
-    query = select(Case).where(Case.id == case_id).options(selectinload(Case.observaciones_list))
+    query = select(Case).where(Case.id == case_id).options(selectinload(Case.observaciones_list), selectinload(Case.attachments))
     result = await session.execute(query)
     case = result.scalars().first()
     if not case:

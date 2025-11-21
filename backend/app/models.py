@@ -60,6 +60,17 @@ class Token(SQLModel):
 class TokenData(SQLModel):
     username: Optional[str] = None
 
+class Attachment(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    filename: str
+    file_path: str
+    file_size: int
+    content_type: str
+    case_id: int = Field(foreign_key="case.id")
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    case: Optional["Case"] = Relationship(back_populates="attachments")
+
 class Case(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     codigo: str = Field(unique=True, index=True)
@@ -78,6 +89,7 @@ class Case(SQLModel, table=True):
     # Relationship
     observaciones_list: List["Observation"] = Relationship(back_populates="case")
     audit_logs: List["CaseAudit"] = Relationship()
+    attachments: List["Attachment"] = Relationship(back_populates="case")
 
 class CaseCreate(SQLModel):
     codigo: str
@@ -141,5 +153,14 @@ class CaseRead(SQLModel):
     updated_at: datetime
     created_at: datetime
 
+class AttachmentRead(SQLModel):
+    id: int
+    filename: str
+    file_path: str
+    file_size: int
+    content_type: str
+    uploaded_at: datetime
+
 class CaseReadWithDetails(CaseRead):
     observaciones_list: List["Observation"] = []
+    attachments: List[AttachmentRead] = []
