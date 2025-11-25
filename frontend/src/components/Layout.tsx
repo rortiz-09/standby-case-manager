@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, Users, Menu, ChevronLeft, ChevronRight, Code } from 'lucide-react';
 import { clsx } from 'clsx';
 import UserMenu from './UserMenu';
+import { CommandPalette } from './ui/CommandPalette';
 
 
 export default function Layout() {
@@ -98,7 +99,7 @@ export default function Layout() {
                 {/* Sidebar Footer */}
                 <div className="p-4 border-t border-vscode-light-border dark:border-vscode-border flex flex-col gap-4">
                     <div className={clsx("flex items-center gap-2", isCollapsed ? "justify-center" : "")}>
-                        <UserMenu isCollapsed={isCollapsed} appVersion="v2.2.0" />
+                        <UserMenu isCollapsed={isCollapsed} appVersion="v2.2.1" />
                     </div>
                 </div>
             </aside >
@@ -143,6 +144,7 @@ export default function Layout() {
                     </footer>
                 </div>
             </main>
+            <CommandPalette />
         </div >
     );
 }
