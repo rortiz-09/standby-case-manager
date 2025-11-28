@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 from typing import List
 import shutil
 import os
 from pathlib import Path
 from ..database import get_session
 from ..models import Attachment, Case, User, UserRole
-from ..auth import get_current_active_user
+from ..auth import get_current_user
 
 router = APIRouter(
     prefix="/cases",
@@ -20,15 +21,14 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 async def upload_attachment(
     case_id: int,
     file: UploadFile = File(...),
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
-    case = session.get(Case, case_id)
+    case = await session.get(Case, case_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
 
     # Generate safe filename
-    timestamp = int(os.path.getctime(os.getcwd())) # Simple timestamp or uuid
     import uuid
     safe_filename = f"{uuid.uuid4()}_{file.filename}"
     file_path = UPLOAD_DIR / safe_filename
@@ -50,26 +50,27 @@ async def upload_attachment(
     )
     
     session.add(attachment)
-    session.commit()
-    session.refresh(attachment)
+    await session.commit()
+    await session.refresh(attachment)
     return attachment
 
 @router.get("/{case_id}/attachments", response_model=List[Attachment])
 async def get_attachments(
     case_id: int,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
-    attachments = session.exec(select(Attachment).where(Attachment.case_id == case_id)).all()
+    result = await session.execute(select(Attachment).where(Attachment.case_id == case_id))
+    attachments = result.scalars().all()
     return attachments
 
 @router.delete("/attachments/{attachment_id}")
 async def delete_attachment(
     attachment_id: int,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
-    attachment = session.get(Attachment, attachment_id)
+    attachment = await session.get(Attachment, attachment_id)
     if not attachment:
         raise HTTPException(status_code=404, detail="Attachment not found")
 
@@ -82,6 +83,6 @@ async def delete_attachment(
     except Exception:
         pass # Warn but continue DB deletion?
 
-    session.delete(attachment)
-    session.commit()
+    await session.delete(attachment)
+    await session.commit()
     return {"ok": True}
