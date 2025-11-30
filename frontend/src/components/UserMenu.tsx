@@ -56,7 +56,7 @@ export default function UserMenu({ isCollapsed, appVersion }: UserMenuProps) {
                     isCollapsed ? "justify-center" : "justify-start"
                 )}>
                     <div className="w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-white font-bold shrink-0">
-                        {user.nombre.charAt(0).toUpperCase()}
+                        {user?.nombre?.charAt(0).toUpperCase() || '?'}
                     </div>
                     {!isCollapsed && (
                         <div className="flex flex-col min-w-0 text-left overflow-hidden">
