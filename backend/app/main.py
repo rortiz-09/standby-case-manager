@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import create_db_and_tables, get_session
-from app.routers import auth, cases, users
+from app.routers import auth, cases, users, files
 from app.models import User, UserRole
 from app.auth import get_password_hash
 from sqlmodel import select
@@ -36,7 +36,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(cases.router)
 app.include_router(users.router)
-app.include_router(audit.router)
+
 app.include_router(files.router)
 from app.routers import import_export
 app.include_router(import_export.router)
