@@ -235,9 +235,19 @@ export default function CaseForm() {
                                     caseData.attachments.map((file: any) => (
                                         <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-vscode-activity rounded-lg border border-slate-200 dark:border-vscode-border group">
                                             <div className="flex items-center gap-3 overflow-hidden">
-                                                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
-                                                    <FileText size={18} />
-                                                </div>
+                                                {file.content_type.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.filename) ? (
+                                                    <div className="relative w-10 h-10 shrink-0 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                                                        <img
+                                                            src={`http://localhost:8000/${file.file_path.replace(/\\/g, '/')}`}
+                                                            alt={file.filename}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0">
+                                                        <FileText size={20} />
+                                                    </div>
+                                                )}
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate" title={file.filename}>
                                                         {file.filename}
@@ -253,9 +263,9 @@ export default function CaseForm() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 rounded-md transition-colors"
-                                                    title="Descargar"
+                                                    title="Ver/Descargar"
                                                 >
-                                                    <Download size={16} />
+                                                    {file.content_type.startsWith('image/') ? <Maximize2 size={16} /> : <Download size={16} />}
                                                 </a>
                                                 <button
                                                     type="button"

@@ -50,6 +50,18 @@ async def upload_attachment(
     )
     
     session.add(attachment)
+    
+    # Create Audit Log
+    from ..models import CaseAudit, CaseAuditType
+    audit_log = CaseAudit(
+        case_id=case_id,
+        user_id=current_user.id,
+        action=CaseAuditType.EVIDENCE,
+        details={"filename": file.filename, "size": file_path.stat().st_size},
+        timestamp=attachment.uploaded_at
+    )
+    session.add(audit_log)
+
     await session.commit()
     await session.refresh(attachment)
     return attachment
