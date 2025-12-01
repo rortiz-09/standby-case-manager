@@ -18,6 +18,8 @@ export default function Dashboard() {
     const [filters, setFilters] = useState({
         status: '',
         priority: '',
+        service: '',
+        sby_responsable: '',
         search: ''
     });
 
@@ -27,6 +29,8 @@ export default function Dashboard() {
         const params = new URLSearchParams();
         if (filters.status) params.append('status', filters.status);
         if (filters.priority) params.append('priority', filters.priority);
+        if (filters.service) params.append('service', filters.service);
+        if (filters.sby_responsable) params.append('sby_responsable', filters.sby_responsable);
         if (filters.search) params.append('search', filters.search);
 
         try {
@@ -89,6 +93,22 @@ export default function Dashboard() {
                     <option value="MEDIO">Medio</option>
                     <option value="BAJO">Bajo</option>
                 </select>
+
+                <input
+                    type="text"
+                    placeholder="Servicio..."
+                    className="border p-2 rounded"
+                    value={filters.service}
+                    onChange={e => setFilters({ ...filters, service: e.target.value })}
+                />
+
+                <input
+                    type="text"
+                    placeholder="Responsable..."
+                    className="border p-2 rounded"
+                    value={filters.sby_responsable}
+                    onChange={e => setFilters({ ...filters, sby_responsable: e.target.value })}
+                />
 
                 <input
                     type="text"

@@ -4,8 +4,9 @@ from typing import Optional
 from sqlmodel import Field, SQLModel
 
 class UserRole(str, Enum):
-    OPERADOR = "OPERADOR"
-    STANDBY = "STANDBY"
+    CONSULTA = "CONSULTA"
+    VISUALIZACION = "VISUALIZACION"
+    INGRESO = "INGRESO"
     ADMIN = "ADMIN"
 
 class CaseStatus(str, Enum):
@@ -25,7 +26,7 @@ class User(SQLModel, table=True):
     nombre: str
     email: str = Field(unique=True, index=True)
     hashed_password: str
-    rol: UserRole = Field(default=UserRole.OPERADOR)
+    rol: UserRole = Field(default=UserRole.CONSULTA)
 
 class Case(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import create_db_and_tables, engine, get_session
-from app.routers import auth, cases
+from app.routers import auth, cases, users
 from app.models import User, UserRole
 from app.auth import get_password_hash
 from sqlmodel import Session, select
@@ -20,6 +20,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(cases.router)
+app.include_router(users.router)
 
 @app.on_event("startup")
 def on_startup():

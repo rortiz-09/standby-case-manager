@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CaseForm from './pages/CaseForm';
+import UserManagement from './pages/UserManagement';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -18,6 +19,7 @@ function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="cases/new" element={<CaseForm />} />
                     <Route path="cases/:id" element={<CaseForm />} />
+                    <Route path="users" element={<UserManagement />} />
                 </Route>
             </Routes>
         </BrowserRouter>
