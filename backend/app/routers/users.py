@@ -26,8 +26,16 @@ def create_user(
     if current_user.rol != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    db_user = User.from_orm(user)
-    db_user.hashed_password = get_password_hash(user.password)
+    # Check if email already exists
+    existing_user = session.exec(select(User).where(User.email == user.email)).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Create user safely
+    user_data = user.dict(exclude={"password"})
+    hashed_pw = get_password_hash(user.password)
+    db_user = User(**user_data, hashed_password=hashed_pw)
+    
     session.add(db_user)
     session.commit()
     session.refresh(db_user)

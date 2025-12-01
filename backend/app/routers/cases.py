@@ -17,10 +17,12 @@ def create_case(case: CaseCreate, session: Session = Depends(get_session), curre
     next_id = (last_case.id + 1) if last_case and last_case.id else 1
     code = f"CASO-{next_id:04d}"
     
-    db_case = Case.from_orm(case)
-    db_case.codigo = code
-    db_case.creado_por_id = current_user.id
-    db_case.ultima_actualizacion = datetime.utcnow()
+    db_case = Case(
+        **case.dict(),
+        codigo=code,
+        creado_por_id=current_user.id,
+        ultima_actualizacion=datetime.utcnow()
+    )
     
     session.add(db_case)
     session.commit()

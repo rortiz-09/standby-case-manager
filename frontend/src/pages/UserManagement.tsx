@@ -43,7 +43,11 @@ export default function UserManagement() {
             alert("Usuario creado exitosamente");
         } catch (error: any) {
             console.error("Error creating user", error);
-            alert("Error al crear usuario");
+            if (error.response && error.response.data && error.response.data.detail) {
+                alert(`Error: ${JSON.stringify(error.response.data.detail)}`);
+            } else {
+                alert("Error al crear usuario. Verifique la conexión.");
+            }
         } finally {
             setLoading(false);
         }
