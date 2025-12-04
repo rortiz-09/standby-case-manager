@@ -8,7 +8,7 @@ Para ejecutar este proyecto, lo único que necesitas tener instalado en tu máqu
 
 - **Docker Desktop** (o Docker Engine + Docker Compose)
 
-No necesitas instalar Node.js, Python, ni bases de datos localmente si usas Docker, ya que todo se ejecuta dentro de contenedores aislados. Esto garantiza que el entorno sea **idéntico** para todos los desarrolladores, sin importar el sistema operativo o la carpeta donde guarden el proyecto.
+No necesitas instalar Node.js, Python, ni bases de datos localmente si usas Docker, ya que todo se ejecuta dentro de contenedores aislados. Esto garantiza que el entorno sea **idéntico** para todos, sin importar el sistema operativo o la carpeta donde guarden el proyecto.
 
 ## Instalación y Ejecución con Docker (Recomendado)
 

@@ -9,15 +9,18 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@headlessui/react": "^2.2.9",
+        "@tanstack/react-query": "^5.90.11",
         "axios": "^1.6.0",
-        "clsx": "^2.0.0",
+        "clsx": "^2.1.1",
+        "framer-motion": "^12.23.25",
         "jwt-decode": "^4.0.0",
         "lucide-react": "^0.290.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-hook-form": "^7.48.0",
         "react-router-dom": "^6.18.0",
-        "tailwind-merge": "^2.0.0"
+        "tailwind-merge": "^3.4.0"
     },
     "devDependencies": {
         "@types/react": "^18.2.37",

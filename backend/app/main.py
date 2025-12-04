@@ -1,10 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import create_db_and_tables, engine, get_session
+from app.database import create_db_and_tables, get_session
 from app.routers import auth, cases, users
 from app.models import User, UserRole
 from app.auth import get_password_hash
-from sqlmodel import Session, select
+from sqlmodel import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
+from app.database import engine
+
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
+import os
 
 app = FastAPI(title="Standby Case Manager")
 
@@ -23,11 +31,21 @@ app.include_router(cases.router)
 app.include_router(users.router)
 
 @app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
+async def on_startup():
+    await create_db_and_tables()
+    
+    # Initialize Redis Cache
+    redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
+    redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
     # Create initial admin user if not exists
-    with Session(engine) as session:
-        user = session.exec(select(User).where(User.email == "admin@example.com")).first()
+    async_session = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as session:
+        result = await session.execute(select(User).where(User.email == "admin@example.com"))
+        user = result.scalars().first()
         if not user:
             admin_user = User(
                 nombre="Admin",
@@ -36,7 +54,7 @@ def on_startup():
                 rol=UserRole.ADMIN
             )
             session.add(admin_user)
-            session.commit()
+            await session.commit()
             print("Admin user created: admin@example.com / admin123")
 
 @app.get("/")

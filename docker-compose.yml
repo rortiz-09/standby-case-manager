@@ -17,6 +17,12 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+
   backend:
     build: ./backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -25,16 +31,24 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/standby_db
+      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/standby_db
+      - REDIS_URL=redis://redis:6379
       - SECRET_KEY=supersecretkey
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   frontend:
-    build: ./frontend
+    image: oven/bun:1
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "3000:80"
+      - "3000:3000"
+    command: sh -c "bun install && bun run dev"
     depends_on:
       - backend
 

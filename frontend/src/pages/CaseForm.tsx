@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { Save, ArrowLeft, Clock } from 'lucide-react';
 import api from '../api/axios';
+import { useToast } from '../context/ToastContext';
+import { clsx } from 'clsx';
 
 interface CaseFormData {
+    codigo?: string;
     servicio_o_plataforma: string;
     prioridad: string;
     estado: string;
@@ -16,69 +21,117 @@ export default function CaseForm() {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEdit = !!id;
-    const { register, handleSubmit, setValue } = useForm<CaseFormData>();
-    const [loading, setLoading] = useState(false);
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<CaseFormData>();
+    const queryClient = useQueryClient();
+    const { showToast } = useToast();
+    const [existingObservations, setExistingObservations] = useState('');
 
-    useEffect(() => {
-        if (isEdit) {
-            api.get(`/cases/${id}`).then(res => {
-                const data = res.data;
-                setValue('servicio_o_plataforma', data.servicio_o_plataforma);
-                setValue('prioridad', data.prioridad);
-                setValue('estado', data.estado);
-                setValue('sby_responsable', data.sby_responsable || '');
-                setValue('novedades_y_comentarios', data.novedades_y_comentarios || '');
-                setValue('observaciones', data.observaciones || '');
-            }).catch(error => {
-                console.error("Error loading case", error);
-                if (error.response && error.response.status === 404) {
-                    alert("El caso no existe.");
-                    navigate('/');
-                }
-            });
-        }
-    }, [id, isEdit, setValue]);
+    // Fetch case data if editing
+    useQuery({
+        queryKey: ['case', id],
+        queryFn: async () => {
+            if (!isEdit) return null;
+            const res = await api.get(`/cases/${id}`);
+            const data = res.data;
+            setValue('codigo', data.codigo);
+            setValue('servicio_o_plataforma', data.servicio_o_plataforma);
+            setValue('prioridad', data.prioridad);
+            setValue('estado', data.estado);
+            setValue('sby_responsable', data.sby_responsable || '');
+            setValue('novedades_y_comentarios', data.novedades_y_comentarios || '');
+            setExistingObservations(data.observaciones || '');
+            return data;
+        },
+        enabled: isEdit,
+        retry: false,
+    });
 
-    const onSubmit = async (data: CaseFormData) => {
-        setLoading(true);
-        try {
-            if (isEdit) {
-                await api.patch(`/cases/${id}`, data);
-            } else {
-                await api.post('/cases/', data);
-            }
+    const createCaseMutation = useMutation({
+        mutationFn: (data: CaseFormData) => api.post('/cases/', data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cases'] });
+            showToast('success', 'Caso creado', 'El nuevo caso ha sido registrado.');
             navigate('/');
-        } catch (error: any) {
-            console.error("Error saving case", error);
-            if (error.response && error.response.data && error.response.data.detail) {
-                alert(`Error: ${JSON.stringify(error.response.data.detail)}`);
-            } else {
-                alert("Error al guardar el caso. Verifique su conexión.");
-            }
-        } finally {
-            setLoading(false);
+        },
+        onError: (error: any) => {
+            showToast('error', 'Error', error.response?.data?.detail || 'Error al crear caso');
+        }
+    });
+
+    const updateCaseMutation = useMutation({
+        mutationFn: (data: CaseFormData) => api.patch(`/cases/${id}`, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cases'] });
+            queryClient.invalidateQueries({ queryKey: ['case', id] });
+            showToast('success', 'Caso actualizado', 'Los cambios han sido guardados correctamente.');
+            navigate('/');
+        },
+        onError: (error: any) => {
+            showToast('error', 'Error', error.response?.data?.detail || 'Error al actualizar caso');
+        }
+    });
+
+    const onSubmit = (data: CaseFormData) => {
+        if (isEdit) {
+            updateCaseMutation.mutate(data);
+        } else {
+            createCaseMutation.mutate(data);
         }
     };
 
-    return (
-        <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">{isEdit ? 'Editar Caso' : 'Nuevo Caso'}</h1>
+    const loading = createCaseMutation.isPending || updateCaseMutation.isPending;
 
-            <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 rounded shadow space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    return (
+        <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={() => navigate('/')}
+                    className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                >
+                    <ArrowLeft size={22} className="text-slate-600 dark:text-slate-300" />
+                </button>
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                        {isEdit ? 'Editar Caso' : 'Nuevo Caso'}
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        {isEdit ? `Actualizando información del caso` : 'Complete el formulario para registrar un nuevo caso'}
+                    </p>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-vscode-sidebar p-8 rounded-xl shadow-sm border border-slate-200 dark:border-vscode-border space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Manual ID Input - Mandatory */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Servicio / Plataforma</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-1">
+                            ID del Caso <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            {...register('codigo', { required: "El ID del caso es obligatorio" })}
+                            disabled={isEdit}
+                            placeholder="Ej: CASO-1001"
+                            className={clsx(
+                                "w-full rounded-lg border bg-slate-50 dark:bg-vscode-activity p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white disabled:opacity-60 disabled:cursor-not-allowed",
+                                errors.codigo ? "border-red-500 focus:ring-red-500" : "border-slate-300 dark:border-vscode-border"
+                            )}
+                        />
+                        {errors.codigo && <span className="text-xs text-red-500 mt-1">{errors.codigo.message}</span>}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-1">Servicio / Plataforma</label>
                         <input
                             {...register('servicio_o_plataforma', { required: true })}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                            className="w-full rounded-lg border-slate-300 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Prioridad</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-1">Prioridad</label>
                         <select
                             {...register('prioridad')}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                            className="w-full rounded-lg border-slate-300 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
                         >
                             <option value="BAJO">BAJO</option>
                             <option value="MEDIO">MEDIO</option>
@@ -89,10 +142,10 @@ export default function CaseForm() {
 
                     {isEdit && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Estado</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-1">Estado</label>
                             <select
                                 {...register('estado')}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                className="w-full rounded-lg border-slate-300 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
                             >
                                 <option value="ABIERTO">ABIERTO</option>
                                 <option value="STANDBY">STANDBY</option>
@@ -103,46 +156,66 @@ export default function CaseForm() {
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Responsable SBY</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-1">Responsable SBY</label>
                         <input
                             {...register('sby_responsable')}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                            className="w-full rounded-lg border-slate-300 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Novedades y Comentarios</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-2">
+                        Motivo <span className="text-slate-400 font-normal">(Novedades y comentarios)</span>
+                    </label>
                     <textarea
                         {...register('novedades_y_comentarios')}
-                        rows={6}
-                        className="block w-full border border-gray-300 rounded-md shadow-sm p-2 font-mono text-sm"
-                        placeholder="Bitácora de eventos..."
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
-                    <textarea
-                        {...register('observaciones')}
                         rows={4}
-                        className="block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        className="w-full rounded-lg border-slate-300 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white font-mono text-sm"
+                        placeholder="Descripción detallada del caso..."
                     />
                 </div>
 
-                <div className="flex justify-end gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-2 flex items-center gap-2">
+                            <Clock size={14} /> Historial de Observaciones
+                        </label>
+                        <div className="w-full h-48 rounded-lg border border-slate-300 dark:border-vscode-border bg-slate-100 dark:bg-vscode-bg p-3 overflow-y-auto font-mono text-sm text-slate-600 dark:text-vscode-text whitespace-pre-wrap">
+                            {existingObservations || "No hay observaciones registradas."}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-2">
+                            Agregar Observación
+                        </label>
+                        <textarea
+                            {...register('observaciones')}
+                            rows={6}
+                            className="w-full rounded-lg border-slate-300 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                            placeholder="Escriba una nueva observación para agregar al historial..."
+                        />
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            * Se agregará automáticamente la fecha y hora al guardar.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-4 pt-4 border-t border-slate-200 dark:border-vscode-border">
                     <button
                         type="button"
                         onClick={() => navigate('/')}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        className="px-6 py-2.5 border border-slate-300 dark:border-vscode-border text-slate-700 dark:text-vscode-text rounded-lg hover:bg-slate-50 dark:hover:bg-vscode-hover transition-colors font-medium"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors font-medium shadow-lg shadow-indigo-500/20"
                     >
+                        <Save size={16} />
                         {loading ? 'Guardando...' : 'Guardar Caso'}
                     </button>
                 </div>

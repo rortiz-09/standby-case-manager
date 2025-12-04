@@ -1,13 +1,19 @@
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@db:5432/standby_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@db:5432/standby_db")
 
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
-def get_session():
-    with Session(engine) as session:
+async def get_session() -> AsyncSession:
+    async_session = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as session:
         yield session
 
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)

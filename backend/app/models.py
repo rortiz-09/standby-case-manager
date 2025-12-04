@@ -5,7 +5,6 @@ from sqlmodel import Field, SQLModel
 
 class UserRole(str, Enum):
     CONSULTA = "CONSULTA"
-    VISUALIZACION = "VISUALIZACION"
     INGRESO = "INGRESO"
     ADMIN = "ADMIN"
 
@@ -27,6 +26,7 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     hashed_password: str
     rol: UserRole = Field(default=UserRole.CONSULTA)
+    is_active: bool = Field(default=True)
 
 class Case(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -43,6 +43,7 @@ class Case(SQLModel, table=True):
     ultima_actualizacion: datetime = Field(default_factory=datetime.utcnow)
 
 class CaseCreate(SQLModel):
+    codigo: str
     servicio_o_plataforma: str
     prioridad: Priority
     novedades_y_comentarios: str
@@ -67,6 +68,18 @@ class UserRead(SQLModel):
     nombre: str
     email: str
     rol: UserRole
+    is_active: bool
+
+class UserUpdate(SQLModel):
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    rol: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+    password: Optional[str] = None
+
+class PasswordChange(SQLModel):
+    current_password: str
+    new_password: str
 
 class Token(SQLModel):
     access_token: str
