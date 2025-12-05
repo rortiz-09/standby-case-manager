@@ -1,47 +1,103 @@
-# Standby Case Manager
+# 🛡️ Standby Case Manager
 
-Sistema de gestión de casos de operación y standby.
+> **Sistema integral para la gestión y monitoreo de casos de operación en tiempo real.**
 
-## Requisitos
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue?style=for-the-badge&logo=docker)
+![Stack](https://img.shields.io/badge/Stack-FastAPI%20%7C%20React%20%7C%20PostgreSQL-blueviolet?style=for-the-badge)
 
-Para ejecutar este proyecto, lo único que necesitas tener instalado en tu máquina es:
+---
 
-- **Docker Desktop** (o Docker Engine + Docker Compose)
+## 📋 Descripción
 
-No necesitas instalar Node.js, Python, ni bases de datos localmente si usas Docker, ya que todo se ejecuta dentro de contenedores aislados. Esto garantiza que el entorno sea **idéntico** para todos, sin importar el sistema operativo o la carpeta donde guarden el proyecto.
+**Standby Case Manager** es una solución robusta diseñada para optimizar el flujo de trabajo de los equipos de operaciones. Permite registrar, monitorear y gestionar incidentes de manera eficiente, asegurando que nada se pierda en el cambio de turno.
 
-## Instalación y Ejecución con Docker (Recomendado)
+### ✨ Características Principales
 
-1. **Clonar el repositorio**: Descarga el código en cualquier carpeta de tu equipo.
-2. **Navegar a la carpeta**: Abre una terminal en la raíz del proyecto `standby-case-manager`.
-3. **Ejecutar**:
+* **🚀 Gestión en Tiempo Real**: Actualizaciones instantáneas de casos y estados.
+* **🔍 Filtrado Avanzado**: Búsqueda potente por fecha, prioridad, estado y responsable.
+* **🌍 Soporte de Zona Horaria**: Detección automática de la zona horaria del usuario para búsquedas precisas.
+* **🔒 Seguridad**: Autenticación robusta y gestión de roles (Admin/Ingreso/Consulta).
+* **🐳 Dockerizado**: Despliegue sencillo y consistente en cualquier entorno.
+
+---
+
+## 🛠️ Tecnologías
+
+Este proyecto está construido con un stack moderno y eficiente:
+
+* **Backend**: ⚡ [FastAPI](https://fastapi.tiangolo.com/) (Python) + SQLModel
+* **Frontend**: ⚛️ [React](https://react.dev/) + [Vite](https://vitejs.dev/)
+* **Estilos**: 🎨 [TailwindCSS](https://tailwindcss.com/)
+* **Base de Datos**: 🐘 [PostgreSQL](https://www.postgresql.org/)
+* **Runtime JS**: 🥯 [Bun](https://bun.sh/) (para builds ultrarrápidos)
+
+---
+
+## 🚀 Guía de Inicio Rápido
+
+La forma más sencilla de ejecutar el proyecto es utilizando **Docker**. Olvídate de instalar dependencias manualmente.
+
+### Requisitos Previos
+
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo.
+
+### 1️⃣ Instalación
+
+Clona el repositorio y navega al directorio:
+
+```bash
+git clone <tu-repositorio>
+cd standby-case-manager
+```
+
+### 2️⃣ Ejecución
+
+Levanta todo el entorno con un solo comando:
 
 ```bash
 docker compose up --build
 ```
 
-Este comando descargará las imágenes necesarias, construirá el frontend (usando Bun) y el backend, y levantará la base de datos.
+> ☕ **Nota**: La primera vez puede tardar unos minutos mientras se descargan las imágenes y se construyen los servicios.
 
-4. **Acceder**:
-    - **Frontend**: [http://localhost:3000](http://localhost:3000)
-    - **API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+### 3️⃣ Acceso
 
-## Usuarios por defecto
+Una vez que los contenedores estén arriba, accede a:
 
-El sistema creará automáticamente un usuario administrador al iniciar:
+| Servicio | URL | Descripción |
+| :--- | :--- | :--- |
+| **Frontend** | [http://localhost:3000](http://localhost:3000) | Interfaz de usuario principal |
+| **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | Documentación interactiva (Swagger) |
 
-- **Email**: `admin@example.com`
-- **Password**: `admin123`
+---
 
-## Estructura del Proyecto
+## 🔐 Credenciales por Defecto
 
-- `backend/`: API FastAPI con SQLModel.
-- `frontend/`: Aplicación React + Vite + TailwindCSS (construida con Bun).
-- `docker-compose.yml`: Archivo maestro que orquesta los contenedores y asegura la consistencia del entorno.
+El sistema se inicializa con un usuario administrador para que puedas empezar de inmediato:
 
-## Desarrollo Local (Opcional)
+* 📧 **Email**: `admin@example.com`
+* 🔑 **Password**: `admin123`
 
-Si prefieres ejecutar los servicios manualmente en tu máquina (fuera de Docker):
+> ⚠️ **Importante**: Se recomienda cambiar esta contraseña inmediatamente después del primer inicio de sesión.
+
+---
+
+## 📂 Estructura del Proyecto
+
+```text
+standby-case-manager/
+├── 📂 backend/          # API RESTful con FastAPI
+├── 📂 frontend/         # SPA con React y Tailwind
+├── 📄 docker-compose.yml # Orquestación de contenedores
+└── 📄 README.md         # Documentación del proyecto
+```
+
+---
+
+## 💻 Desarrollo Local (Manual)
+
+Si deseas ejecutar los servicios fuera de Docker para desarrollo:
 
 ### Backend
 
@@ -53,13 +109,12 @@ uvicorn app.main:app --reload
 
 ### Frontend
 
-Este proyecto utiliza **Bun** para una gestión de paquetes más rápida.
-
-1. Instalar Bun: [https://bun.sh/](https://bun.sh/)
-2. Ejecutar:
-
 ```bash
 cd frontend
 bun install
 bun run dev
 ```
+
+---
+
+Hecho con ❤️ por [rortiz-09](https://github.com/rortiz-09)
