@@ -40,6 +40,10 @@ export default function Dashboard() {
             if (filters.start_date) params.append('start_date', filters.start_date);
             if (filters.end_date) params.append('end_date', filters.end_date);
 
+            // Send timezone offset in minutes
+            const offset = new Date().getTimezoneOffset();
+            params.append('timezone_offset', offset.toString());
+
             const res = await api.get(`/cases/?${params.toString()}`);
             return res.data as Case[];
         },
@@ -86,8 +90,38 @@ export default function Dashboard() {
                     <Filter size={16} /> Filtros de Búsqueda
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Date Filters - Top Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-slate-100 dark:border-vscode-border">
                     <div className="relative">
+                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 ml-1">Fecha Inicio</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input
+                                type="date"
+                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
+                                value={filters.start_date}
+                                onChange={e => setFilters({ ...filters, start_date: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="relative">
+                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 ml-1">Fecha Fin</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input
+                                type="date"
+                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
+                                value={filters.end_date}
+                                onChange={e => setFilters({ ...filters, end_date: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Other Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    <div className="relative lg:col-span-2 xl:col-span-2">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input
                             type="text"
@@ -131,7 +165,7 @@ export default function Dashboard() {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100 dark:border-vscode-border">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input
                         type="text"
                         placeholder="Responsable..."
@@ -139,26 +173,6 @@ export default function Dashboard() {
                         value={filters.sby_responsable}
                         onChange={e => setFilters({ ...filters, sby_responsable: e.target.value })}
                     />
-
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input
-                            type="date"
-                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
-                            value={filters.start_date}
-                            onChange={e => setFilters({ ...filters, start_date: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input
-                            type="date"
-                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
-                            value={filters.end_date}
-                            onChange={e => setFilters({ ...filters, end_date: e.target.value })}
-                        />
-                    </div>
                 </div>
             </div>
 

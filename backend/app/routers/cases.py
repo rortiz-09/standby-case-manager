@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, or_
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.database import get_session
 from app.models import Case, CaseCreate, CaseUpdate, User, UserRole, CaseStatus, Priority
 from app.auth import get_current_user
@@ -43,6 +43,7 @@ async def read_cases(
     search: Optional[str] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
+    timezone_offset: Optional[int] = None,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -59,8 +60,16 @@ async def read_cases(
     if search:
         query = query.where(or_(Case.novedades_y_comentarios.ilike(f"%{search}%"), Case.codigo.ilike(f"%{search}%")))
     if start_date:
+        if timezone_offset is not None:
+             # Adjust for timezone: start_date is 00:00 local, so add offset to get UTC
+             start_date = start_date + timedelta(minutes=timezone_offset)
         query = query.where(Case.ultima_actualizacion >= start_date)
     if end_date:
+        # Set time to end of day
+        end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+        if timezone_offset is not None:
+             # Adjust for timezone
+             end_date = end_date + timedelta(minutes=timezone_offset)
         query = query.where(Case.ultima_actualizacion <= end_date)
         
     query = query.order_by(Case.ultima_actualizacion.desc()).offset(skip).limit(limit)
