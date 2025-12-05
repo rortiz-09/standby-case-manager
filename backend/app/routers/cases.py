@@ -33,7 +33,6 @@ async def create_case(case: CaseCreate, session: AsyncSession = Depends(get_sess
     return db_case
 
 @router.get("/", response_model=List[Case])
-@cache(expire=60)
 async def read_cases(
     skip: int = 0,
     limit: int = 100,

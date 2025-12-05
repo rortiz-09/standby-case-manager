@@ -56,6 +56,8 @@ class CaseUpdate(SQLModel):
     novedades_y_comentarios: Optional[str] = None
     observaciones: Optional[str] = None
     fecha_fin: Optional[datetime] = None
+    prioridad: Optional[Priority] = None
+    servicio_o_plataforma: Optional[str] = None
 
 class UserCreate(SQLModel):
     nombre: str
