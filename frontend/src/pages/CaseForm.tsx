@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -27,24 +27,29 @@ export default function CaseForm() {
     const [existingObservations, setExistingObservations] = useState('');
 
     // Fetch case data if editing
-    useQuery({
+    // Fetch case data if editing
+    const { data: caseData } = useQuery({
         queryKey: ['case', id],
         queryFn: async () => {
             if (!isEdit) return null;
             const res = await api.get(`/cases/${id}`);
-            const data = res.data;
-            setValue('codigo', data.codigo);
-            setValue('servicio_o_plataforma', data.servicio_o_plataforma);
-            setValue('prioridad', data.prioridad);
-            setValue('estado', data.estado);
-            setValue('sby_responsable', data.sby_responsable || '');
-            setValue('novedades_y_comentarios', data.novedades_y_comentarios || '');
-            setExistingObservations(data.observaciones || '');
-            return data;
+            return res.data;
         },
         enabled: isEdit,
         retry: false,
     });
+
+    useEffect(() => {
+        if (caseData) {
+            setValue('codigo', caseData.codigo);
+            setValue('servicio_o_plataforma', caseData.servicio_o_plataforma);
+            setValue('prioridad', caseData.prioridad);
+            setValue('estado', caseData.estado);
+            setValue('sby_responsable', caseData.sby_responsable || '');
+            setValue('novedades_y_comentarios', caseData.novedades_y_comentarios || '');
+            setExistingObservations(caseData.observaciones || '');
+        }
+    }, [caseData, setValue]);
 
     const createCaseMutation = useMutation({
         mutationFn: (data: CaseFormData) => api.post('/cases/', data),
