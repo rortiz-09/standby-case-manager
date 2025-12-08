@@ -67,11 +67,11 @@ export default function Dashboard() {
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case 'CRITICO': return 'text-red-500 font-bold';
-            case 'ALTO': return 'text-orange-500 font-bold';
-            case 'MEDIO': return 'text-yellow-500';
-            case 'BAJO': return 'text-emerald-500';
-            default: return 'text-slate-400';
+            case 'CRITICO': return 'text-red-600 dark:text-red-500 font-bold';
+            case 'ALTO': return 'text-orange-600 dark:text-orange-500 font-bold';
+            case 'MEDIO': return 'text-yellow-600 dark:text-yellow-500 font-medium';
+            case 'BAJO': return 'text-emerald-600 dark:text-emerald-500 font-medium';
+            default: return 'text-slate-500 dark:text-slate-400';
         }
     };
 
@@ -90,16 +90,16 @@ export default function Dashboard() {
 
             {/* Filters */}
             <Card className="p-5 space-y-4">
-                <div className="flex items-center gap-2 text-white font-medium mb-2">
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-medium mb-2">
                     <Filter size={16} /> Filtros de Búsqueda
                 </div>
 
                 {/* Date Filters - Top Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-white/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
                     <div className="relative">
-                        <label className="block text-xs font-medium text-gray-400 mb-1 ml-1">Fecha Inicio</label>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1 ml-1">Fecha Inicio</label>
                         <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={16} />
                             <Input
                                 type="date"
                                 className="pl-10"
@@ -110,9 +110,9 @@ export default function Dashboard() {
                     </div>
 
                     <div className="relative">
-                        <label className="block text-xs font-medium text-gray-400 mb-1 ml-1">Fecha Fin</label>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1 ml-1">Fecha Fin</label>
                         <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={16} />
                             <Input
                                 type="date"
                                 className="pl-10"
@@ -126,7 +126,7 @@ export default function Dashboard() {
                 {/* Other Filters */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                     <div className="relative lg:col-span-2 xl:col-span-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" size={16} />
                         <Input
                             type="text"
                             placeholder="Buscar por código o motivo..."
@@ -137,15 +137,15 @@ export default function Dashboard() {
                     </div>
 
                     <select
-                        className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-500/50"
                         value={filters.status}
                         onChange={e => setFilters({ ...filters, status: e.target.value })}
                     >
-                        <option value="" className="bg-gray-900">Todos los Estados</option>
-                        <option value="ABIERTO" className="bg-gray-900">Abierto</option>
-                        <option value="STANDBY" className="bg-gray-900">Standby</option>
-                        <option value="EN_MONITOREO" className="bg-gray-900">En Monitoreo</option>
-                        <option value="CERRADO" className="bg-gray-900">Cerrado</option>
+                        <option value="" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Todos los Estados</option>
+                        <option value="ABIERTO" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Abierto</option>
+                        <option value="STANDBY" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Standby</option>
+                        <option value="EN_MONITOREO" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">En Monitoreo</option>
+                        <option value="CERRADO" className="bg-white text-slate-900 dark:bg-gray-900 dark:text-white">Cerrado</option>
                     </select>
 
                     <select
@@ -182,18 +182,18 @@ export default function Dashboard() {
             <Card className="overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-white/5 border-b border-white/10">
+                        <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
                             <tr>
-                                <th className="p-4 font-semibold text-gray-300 text-sm">Código</th>
-                                <th className="p-4 font-semibold text-gray-300 text-sm">Servicio</th>
-                                <th className="p-4 font-semibold text-gray-300 text-sm">Estado</th>
-                                <th className="p-4 font-semibold text-gray-300 text-sm">Prioridad</th>
-                                <th className="p-4 font-semibold text-gray-300 text-sm">Motivo</th>
-                                <th className="p-4 font-semibold text-gray-300 text-sm">Responsable</th>
-                                <th className="p-4 font-semibold text-gray-300 text-sm">Acciones</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Código</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Servicio</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Estado</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Prioridad</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Motivo</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Responsable</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-gray-300 text-sm">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-slate-200 dark:divide-white/5">
                             {isLoading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i}>
@@ -213,9 +213,9 @@ export default function Dashboard() {
                                     </td>
                                 </tr>
                             ) : Array.isArray(cases) && cases.map((c) => (
-                                <tr key={c.id} className="hover:bg-white/5 transition-colors group">
-                                    <td className="p-4 font-mono text-sm font-medium text-white">{c.codigo}</td>
-                                    <td className="p-4 text-sm text-gray-300">{c.servicio_o_plataforma}</td>
+                                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                    <td className="p-4 font-mono text-sm font-medium text-slate-900 dark:text-white">{c.codigo}</td>
+                                    <td className="p-4 text-sm text-slate-600 dark:text-gray-300">{c.servicio_o_plataforma}</td>
                                     <td className="p-4">
                                         <Badge variant={getStatusVariant(c.estado) as any}>
                                             {c.estado}
@@ -226,10 +226,10 @@ export default function Dashboard() {
                                             {c.prioridad}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={c.novedades_y_comentarios}>
+                                    <td className="p-4 text-sm text-slate-500 dark:text-gray-400 max-w-xs truncate" title={c.novedades_y_comentarios}>
                                         {c.novedades_y_comentarios || '-'}
                                     </td>
-                                    <td className="p-4 text-sm text-gray-400">{c.sby_responsable || '-'}</td>
+                                    <td className="p-4 text-sm text-slate-500 dark:text-gray-400">{c.sby_responsable || '-'}</td>
                                     <td className="p-4">
                                         <Link
                                             to={`/cases/${c.id}`}

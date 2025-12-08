@@ -38,7 +38,7 @@ export default function Layout() {
     }, [user]);
 
     return (
-        <div className="flex h-screen bg-vscode-light-bg dark:bg-vscode-bg text-vscode-light-text dark:text-vscode-text transition-colors duration-300">
+        <div className="flex h-screen bg-slate-50 dark:bg-gray-900 text-slate-900 dark:text-white transition-colors duration-300 font-sans">
             {/* Sidebar */}
             <aside
                 className={clsx(
