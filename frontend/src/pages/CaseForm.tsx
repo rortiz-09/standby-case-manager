@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Save, ArrowLeft, Clock } from 'lucide-react';
+import { Save, ArrowLeft, Clock, Edit2, X, Check } from 'lucide-react';
 import api from '../api/axios';
 import { useToast } from '../context/ToastContext';
 import { clsx } from 'clsx';
@@ -17,6 +17,13 @@ interface CaseFormData {
     observaciones: string;
 }
 
+interface Observation {
+    id: number;
+    content: string;
+    created_at: string;
+    created_by_id: number;
+}
+
 export default function CaseForm() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -25,6 +32,9 @@ export default function CaseForm() {
     const queryClient = useQueryClient();
     const { showToast } = useToast();
     const [existingObservations, setExistingObservations] = useState('');
+    const [observationList, setObservationList] = useState<Observation[]>([]);
+    const [editingObsId, setEditingObsId] = useState<number | null>(null);
+    const [editingContent, setEditingContent] = useState('');
 
     // Fetch case data if editing
     // Fetch case data if editing
@@ -48,6 +58,11 @@ export default function CaseForm() {
             setValue('sby_responsable', caseData.sby_responsable || '');
             setValue('novedades_y_comentarios', caseData.novedades_y_comentarios || '');
             setExistingObservations(caseData.observaciones || '');
+            if (caseData.observaciones_list && Array.isArray(caseData.observaciones_list)) {
+                setObservationList(caseData.observaciones_list);
+            } else {
+                setObservationList([]);
+            }
         }
     }, [caseData, setValue]);
 
@@ -62,6 +77,34 @@ export default function CaseForm() {
             showToast('error', 'Error', error.response?.data?.detail || 'Error al crear caso');
         }
     });
+
+    const updateObservationMutation = useMutation({
+        mutationFn: ({ id, content }: { id: number, content: string }) => api.patch(`/cases/observations/${id}`, { content }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['case', id] });
+            showToast('success', 'Observación actualizada', 'El comentario ha sido modificado.');
+            setEditingObsId(null);
+            setEditingContent('');
+        },
+        onError: (error: any) => {
+            showToast('error', 'Error', error.response?.data?.detail || 'Error al actualizar observación');
+        }
+    });
+
+    const handleEditObservation = (obs: Observation) => {
+        setEditingObsId(obs.id);
+        setEditingContent(obs.content);
+    };
+
+    const handleSaveObservation = (id: number) => {
+        if (!editingContent.trim()) return;
+        updateObservationMutation.mutate({ id, content: editingContent });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingObsId(null);
+        setEditingContent('');
+    };
 
     const updateCaseMutation = useMutation({
         mutationFn: (data: CaseFormData) => api.patch(`/cases/${id}`, data),
@@ -186,8 +229,78 @@ export default function CaseForm() {
                         <label className="block text-sm font-medium text-slate-700 dark:text-vscode-text mb-2 flex items-center gap-2">
                             <Clock size={14} /> Historial de Observaciones
                         </label>
-                        <div className="w-full h-48 rounded-lg border border-slate-300 dark:border-vscode-border bg-slate-100 dark:bg-vscode-bg p-3 overflow-y-auto font-mono text-sm text-slate-600 dark:text-vscode-text whitespace-pre-wrap">
-                            {existingObservations || "No hay observaciones registradas."}
+                        <div className="w-full h-48 rounded-lg border border-slate-300 dark:border-vscode-border bg-slate-100 dark:bg-vscode-bg p-3 overflow-y-auto font-mono text-sm text-slate-600 dark:text-vscode-text whitespace-pre-wrap space-y-3">
+                            {/* Legacy Observations */}
+                            {existingObservations && (
+                                <div className="p-2 bg-white dark:bg-vscode-activity rounded border border-slate-200 dark:border-vscode-border">
+                                    <p className="text-xs text-slate-400 mb-1">Notas Antiguas:</p>
+                                    {existingObservations}
+                                </div>
+                            )}
+
+                            {/* New Observations List */}
+                            {observationList.length > 0 ? (
+                                observationList.map((obs) => (
+                                    <div key={obs.id} className="p-3 bg-white dark:bg-vscode-activity rounded border border-slate-200 dark:border-vscode-border group">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-xs text-slate-400 font-mono">
+                                                {(() => {
+                                                    // Ensure date is treated as UTC
+                                                    let dateStr = obs.created_at;
+                                                    if (!dateStr.endsWith('Z')) dateStr += 'Z';
+                                                    return new Date(dateStr).toLocaleString('es-ES', {
+                                                        day: '2-digit', month: '2-digit', year: 'numeric',
+                                                        hour: '2-digit', minute: '2-digit'
+                                                    });
+                                                })()}
+                                            </span>
+                                            {editingObsId !== obs.id && (
+                                                <button
+                                                    onClick={() => handleEditObservation(obs)}
+                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-100 dark:hover:bg-vscode-hover rounded transition-all text-slate-500"
+                                                    title="Editar observación"
+                                                    type="button"
+                                                >
+                                                    <Edit2 size={12} />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {editingObsId === obs.id ? (
+                                            <div className="space-y-2">
+                                                <textarea
+                                                    value={editingContent}
+                                                    onChange={(e) => setEditingContent(e.target.value)}
+                                                    className="w-full p-2 text-sm border rounded dark:bg-vscode-bg dark:border-vscode-border dark:text-white"
+                                                    rows={3}
+                                                />
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        type="button"
+                                                        id={`cancel-obs-${obs.id}`}
+                                                        onClick={handleCancelEdit}
+                                                        className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        id={`save-obs-${obs.id}`}
+                                                        onClick={() => handleSaveObservation(obs.id)}
+                                                        className="p-1 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                                                    >
+                                                        <Check size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{obs.content}</p>
+                                        )}
+                                    </div>
+                                ))
+                            ) : !existingObservations && (
+                                <p className="text-slate-400 italic text-sm p-2">No hay observaciones registradas.</p>
+                            )}
                         </div>
                     </div>
 

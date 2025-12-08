@@ -4,6 +4,10 @@ import { Search, Filter, Calendar, AlertCircle, ArrowRight, Activity } from 'luc
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { clsx } from 'clsx';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/Skeleton';
 
 interface Case {
@@ -50,24 +54,24 @@ export default function Dashboard() {
         staleTime: 60000, // 1 minute
     });
 
-    const getStatusColor = (status: string) => {
+    const getStatusVariant = (status: string) => {
         switch (status) {
-            case 'CRITICO': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
-            case 'ALTO': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
-            case 'CERRADO': return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800';
-            case 'STANDBY': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800';
-            case 'EN_MONITOREO': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
-            default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600';
+            case 'CRITICO': return 'danger';
+            case 'ALTO': return 'warning';
+            case 'CERRADO': return 'success';
+            case 'STANDBY': return 'warning';
+            case 'EN_MONITOREO': return 'info';
+            default: return 'default';
         }
     };
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case 'CRITICO': return 'text-red-600 dark:text-red-400 font-bold';
-            case 'ALTO': return 'text-orange-600 dark:text-orange-400 font-bold';
-            case 'MEDIO': return 'text-yellow-600 dark:text-yellow-400';
-            case 'BAJO': return 'text-emerald-600 dark:text-emerald-400';
-            default: return 'text-slate-600 dark:text-slate-400';
+            case 'CRITICO': return 'text-red-500 font-bold';
+            case 'ALTO': return 'text-orange-500 font-bold';
+            case 'MEDIO': return 'text-yellow-500';
+            case 'BAJO': return 'text-emerald-500';
+            default: return 'text-slate-400';
         }
     };
 
@@ -85,20 +89,20 @@ export default function Dashboard() {
             </div>
 
             {/* Filters */}
-            <div className="bg-white dark:bg-vscode-sidebar p-5 rounded-xl shadow-sm border border-slate-200 dark:border-vscode-border space-y-4">
-                <div className="flex items-center gap-2 text-slate-700 dark:text-vscode-text font-medium mb-2">
+            <Card className="p-5 space-y-4">
+                <div className="flex items-center gap-2 text-white font-medium mb-2">
                     <Filter size={16} /> Filtros de Búsqueda
                 </div>
 
                 {/* Date Filters - Top Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-slate-100 dark:border-vscode-border">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-white/10">
                     <div className="relative">
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 ml-1">Fecha Inicio</label>
+                        <label className="block text-xs font-medium text-gray-400 mb-1 ml-1">Fecha Inicio</label>
                         <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                            <input
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                            <Input
                                 type="date"
-                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
+                                className="pl-10"
                                 value={filters.start_date}
                                 onChange={e => setFilters({ ...filters, start_date: e.target.value })}
                             />
@@ -106,12 +110,12 @@ export default function Dashboard() {
                     </div>
 
                     <div className="relative">
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 ml-1">Fecha Fin</label>
+                        <label className="block text-xs font-medium text-gray-400 mb-1 ml-1">Fecha Fin</label>
                         <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                            <input
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                            <Input
                                 type="date"
-                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
+                                className="pl-10"
                                 value={filters.end_date}
                                 onChange={e => setFilters({ ...filters, end_date: e.target.value })}
                             />
@@ -122,76 +126,74 @@ export default function Dashboard() {
                 {/* Other Filters */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                     <div className="relative lg:col-span-2 xl:col-span-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                        <Input
                             type="text"
                             placeholder="Buscar por código o motivo..."
-                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm placeholder-slate-400"
+                            className="pl-10"
                             value={filters.search}
                             onChange={e => setFilters({ ...filters, search: e.target.value })}
                         />
                     </div>
 
                     <select
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
+                        className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
                         value={filters.status}
                         onChange={e => setFilters({ ...filters, status: e.target.value })}
                     >
-                        <option value="">Todos los Estados</option>
-                        <option value="ABIERTO">Abierto</option>
-                        <option value="STANDBY">Standby</option>
-                        <option value="EN_MONITOREO">En Monitoreo</option>
-                        <option value="CERRADO">Cerrado</option>
+                        <option value="" className="bg-gray-900">Todos los Estados</option>
+                        <option value="ABIERTO" className="bg-gray-900">Abierto</option>
+                        <option value="STANDBY" className="bg-gray-900">Standby</option>
+                        <option value="EN_MONITOREO" className="bg-gray-900">En Monitoreo</option>
+                        <option value="CERRADO" className="bg-gray-900">Cerrado</option>
                     </select>
 
                     <select
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm"
+                        className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
                         value={filters.priority}
                         onChange={e => setFilters({ ...filters, priority: e.target.value })}
                     >
-                        <option value="">Todas las Prioridades</option>
-                        <option value="CRITICO">Crítico</option>
-                        <option value="ALTO">Alto</option>
-                        <option value="MEDIO">Medio</option>
-                        <option value="BAJO">Bajo</option>
+                        <option value="" className="bg-gray-900">Todas las Prioridades</option>
+                        <option value="CRITICO" className="bg-gray-900">Crítico</option>
+                        <option value="ALTO" className="bg-gray-900">Alto</option>
+                        <option value="MEDIO" className="bg-gray-900">Medio</option>
+                        <option value="BAJO" className="bg-gray-900">Bajo</option>
                     </select>
 
-                    <input
+                    <Input
                         type="text"
                         placeholder="Servicio..."
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm placeholder-slate-400"
                         value={filters.service}
                         onChange={e => setFilters({ ...filters, service: e.target.value })}
                     />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input
+                    <Input
                         type="text"
                         placeholder="Responsable..."
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-vscode-border bg-slate-50 dark:bg-vscode-activity focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white text-sm placeholder-slate-400"
                         value={filters.sby_responsable}
                         onChange={e => setFilters({ ...filters, sby_responsable: e.target.value })}
                     />
                 </div>
-            </div>
+            </Card>
 
             {/* Table */}
-            <div className="bg-white dark:bg-vscode-sidebar rounded-xl shadow-sm border border-slate-200 dark:border-vscode-border overflow-hidden">
+            <Card className="overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 dark:bg-vscode-activity border-b border-slate-200 dark:border-vscode-border">
+                        <thead className="bg-white/5 border-b border-white/10">
                             <tr>
-                                <th className="p-4 font-semibold text-slate-600 dark:text-vscode-text text-sm">Código</th>
-                                <th className="p-4 font-semibold text-slate-600 dark:text-vscode-text text-sm">Servicio</th>
-                                <th className="p-4 font-semibold text-slate-600 dark:text-vscode-text text-sm">Estado</th>
-                                <th className="p-4 font-semibold text-slate-600 dark:text-vscode-text text-sm">Prioridad</th>
-                                <th className="p-4 font-semibold text-slate-600 dark:text-vscode-text text-sm">Motivo</th>
-                                <th className="p-4 font-semibold text-slate-600 dark:text-vscode-text text-sm">Responsable</th>
-                                <th className="p-4 font-semibold text-slate-600 dark:text-vscode-text text-sm">Acciones</th>
+                                <th className="p-4 font-semibold text-gray-300 text-sm">Código</th>
+                                <th className="p-4 font-semibold text-gray-300 text-sm">Servicio</th>
+                                <th className="p-4 font-semibold text-gray-300 text-sm">Estado</th>
+                                <th className="p-4 font-semibold text-gray-300 text-sm">Prioridad</th>
+                                <th className="p-4 font-semibold text-gray-300 text-sm">Motivo</th>
+                                <th className="p-4 font-semibold text-gray-300 text-sm">Responsable</th>
+                                <th className="p-4 font-semibold text-gray-300 text-sm">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-vscode-border">
+                        <tbody className="divide-y divide-white/5">
                             {isLoading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i}>
@@ -211,27 +213,27 @@ export default function Dashboard() {
                                     </td>
                                 </tr>
                             ) : Array.isArray(cases) && cases.map((c) => (
-                                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-vscode-hover transition-colors group">
-                                    <td className="p-4 font-mono text-sm font-medium text-slate-700 dark:text-white">{c.codigo}</td>
-                                    <td className="p-4 text-sm text-slate-700 dark:text-vscode-text">{c.servicio_o_plataforma}</td>
+                                <tr key={c.id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="p-4 font-mono text-sm font-medium text-white">{c.codigo}</td>
+                                    <td className="p-4 text-sm text-gray-300">{c.servicio_o_plataforma}</td>
                                     <td className="p-4">
-                                        <span className={clsx("px-2.5 py-1 rounded-full text-xs font-medium border", getStatusColor(c.estado))}>
+                                        <Badge variant={getStatusVariant(c.estado) as any}>
                                             {c.estado}
-                                        </span>
+                                        </Badge>
                                     </td>
                                     <td className="p-4">
                                         <span className={clsx("text-sm", getPriorityColor(c.prioridad))}>
                                             {c.prioridad}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-sm text-slate-600 dark:text-vscode-text max-w-xs truncate" title={c.novedades_y_comentarios}>
+                                    <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={c.novedades_y_comentarios}>
                                         {c.novedades_y_comentarios || '-'}
                                     </td>
-                                    <td className="p-4 text-sm text-slate-600 dark:text-vscode-text">{c.sby_responsable || '-'}</td>
+                                    <td className="p-4 text-sm text-gray-400">{c.sby_responsable || '-'}</td>
                                     <td className="p-4">
                                         <Link
                                             to={`/cases/${c.id}`}
-                                            className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 dark:text-vscode-blue dark:hover:text-blue-400 font-medium text-sm transition-colors"
+                                            className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
                                         >
                                             Ver <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                                         </Link>
@@ -241,9 +243,9 @@ export default function Dashboard() {
                             {!isLoading && !isError && (!cases || cases.length === 0) && (
                                 <tr>
                                     <td colSpan={7} className="p-12 text-center">
-                                        <div className="flex flex-col items-center justify-center text-slate-400">
+                                        <div className="flex flex-col items-center justify-center text-gray-500">
                                             <AlertCircle size={43} className="mb-2 opacity-50" />
-                                            <p className="text-lg font-medium text-slate-600 dark:text-slate-300">No se encontraron casos</p>
+                                            <p className="text-lg font-medium text-gray-400">No se encontraron casos</p>
                                             <p className="text-sm">Intenta ajustar los filtros de búsqueda</p>
                                         </div>
                                     </td>
@@ -252,7 +254,7 @@ export default function Dashboard() {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 }

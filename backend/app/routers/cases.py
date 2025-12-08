@@ -4,7 +4,8 @@ from sqlmodel import select, or_
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.database import get_session
-from app.models import Case, CaseCreate, CaseUpdate, User, UserRole, CaseStatus, Priority
+from sqlalchemy.orm import selectinload
+from app.models import Case, CaseCreate, CaseUpdate, User, UserRole, CaseStatus, Priority, Observation, CaseReadWithDetails, ObservationUpdate
 from app.auth import get_current_user
 from fastapi_cache.decorator import cache
 
@@ -21,15 +22,45 @@ async def create_case(case: CaseCreate, session: AsyncSession = Depends(get_sess
     if existing:
         raise HTTPException(status_code=400, detail="Case code already exists")
     
+    # Extract initial observation content
+    initial_obs_content = case.observaciones
+    
+    # Create case without legacy observations field populated (or keep it for legacy compat, but we want it in the list)
+    # We will set it to None in the DB object to encourage using the list, 
+    # but if we need legacy support we might need to keep it. 
+    # For now, let's clear it so we don't have duplication if we ever migrate fully.
+    # Actually, let's keep it in the dict but override it in the model creation if needed.
+    # To be safe and avoid "missing" data if something reads only the column, 
+    # we can keep it, but we MUST create the Observation record.
+    
+    case_data = case.dict()
+    if "observaciones" in case_data:
+        del case_data["observaciones"] # Remove from case data so it's not set on the legacy column (or set to None)
+
     db_case = Case(
-        **case.dict(),
+        **case_data,
+        observaciones=None, # Explicitly set legacy field to None
         creado_por_id=current_user.id,
-        ultima_actualizacion=datetime.utcnow()
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
     )
     
     session.add(db_case)
     await session.commit()
     await session.refresh(db_case)
+    
+    # Create Observation record if content exists
+    if initial_obs_content:
+        new_obs = Observation(
+            case_id=db_case.id,
+            content=initial_obs_content,
+            created_by_id=current_user.id,
+            created_at=datetime.utcnow()
+        )
+        session.add(new_obs)
+        await session.commit()
+        await session.refresh(db_case)
+        
     return db_case
 
 @router.get("/", response_model=List[Case])
@@ -63,23 +94,25 @@ async def read_cases(
         if timezone_offset is not None:
              # Adjust for timezone: start_date is 00:00 local, so add offset to get UTC
              start_date = start_date + timedelta(minutes=timezone_offset)
-        query = query.where(Case.ultima_actualizacion >= start_date)
+        query = query.where(Case.updated_at >= start_date)
     if end_date:
         # Set time to end of day
         end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
         if timezone_offset is not None:
              # Adjust for timezone
              end_date = end_date + timedelta(minutes=timezone_offset)
-        query = query.where(Case.ultima_actualizacion <= end_date)
+        query = query.where(Case.updated_at <= end_date)
         
-    query = query.order_by(Case.ultima_actualizacion.desc()).offset(skip).limit(limit)
+    query = query.order_by(Case.updated_at.desc()).offset(skip).limit(limit)
     result = await session.execute(query)
     cases = result.scalars().all()
     return cases
 
-@router.get("/{case_id}", response_model=Case)
+@router.get("/{case_id}", response_model=CaseReadWithDetails)
 async def read_case(case_id: int, session: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user)):
-    case = await session.get(Case, case_id)
+    query = select(Case).where(Case.id == case_id).options(selectinload(Case.observaciones_list))
+    result = await session.execute(query)
+    case = result.scalars().first()
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     return case
@@ -96,22 +129,48 @@ async def update_case(case_id: int, case_update: CaseUpdate, session: AsyncSessi
     
     case_data = case_update.dict(exclude_unset=True)
     
-    # Handle observations with timestamp
+    # Handle observations as separate entities
     if "observaciones" in case_data and case_data["observaciones"]:
-        new_obs = case_data["observaciones"]
-        # User requested dd/mm/yyyy format
-        timestamp = datetime.utcnow().strftime("%d/%m/%Y")
-        if db_case.observaciones:
-            db_case.observaciones += f"\n[{timestamp}] {new_obs}"
-        else:
-            db_case.observaciones = f"[{timestamp}] {new_obs}"
+        new_obs_content = case_data["observaciones"]
+        new_obs = Observation(
+            case_id=db_case.id,
+            content=new_obs_content,
+            created_by_id=current_user.id,
+            created_at=datetime.utcnow()
+        )
+        session.add(new_obs)
+    
+    # Always remove 'observaciones' from data to prevent overwriting legacy field with empty string/None
+    if "observaciones" in case_data:
         del case_data["observaciones"]
 
     for key, value in case_data.items():
         setattr(db_case, key, value)
     
-    db_case.ultima_actualizacion = datetime.utcnow()
+    db_case.updated_at = datetime.utcnow()
     session.add(db_case)
     await session.commit()
     await session.refresh(db_case)
     return db_case
+
+@router.patch("/observations/{observation_id}", response_model=Observation)
+async def update_observation(
+    observation_id: int, 
+    observation_update: ObservationUpdate, 
+    session: AsyncSession = Depends(get_session), 
+    current_user: User = Depends(get_current_user)
+):
+    obs = await session.get(Observation, observation_id)
+    if not obs:
+        raise HTTPException(status_code=404, detail="Observation not found")
+        
+    if current_user.rol not in [UserRole.INGRESO, UserRole.ADMIN]:
+        if obs.created_by_id != current_user.id:
+             raise HTTPException(status_code=403, detail="Not authorized to edit this observation")
+
+    obs.content = observation_update.content
+    obs.edited_at = datetime.utcnow()
+    session.add(obs)
+    await session.commit()
+    await session.refresh(obs)
+    return obs
