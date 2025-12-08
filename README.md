@@ -18,6 +18,7 @@
 * **🔍 Filtrado Avanzado**: Búsqueda potente por fecha (presets 1M/3M/6M), prioridad, estado y responsable.
 * **⌨️ Command Palette**: Navegación rápida y acciones globales con `Ctrl + K`.
 * **👤 Smart Avatars**: Identificación visual instantánea con avatares generados por hash.
+* **📂 Bóveda de Evidencias**: Adjunta imágenes, PDFs y logs a los casos con arrastrar y soltar (Drag & Drop), previsualización y auditoría automática.
 * **🌍 Soporte de Zona Horaria**: Detección automática de la zona horaria del usuario para búsquedas precisas.
 * **🔒 Seguridad**: Autenticación robusta y gestión de roles (Admin/Ingreso/Consulta).
 * **🐳 Dockerizado**: Despliegue sencillo y consistente en cualquier entorno.
@@ -28,7 +29,7 @@
 
 Este proyecto está construido con un stack moderno y eficiente:
 
-* **Backend**: ⚡ [FastAPI](https://fastapi.tiangolo.com/) (Python) + SQLModel
+* **Backend**: ⚡ [FastAPI](https://fastapi.tiangolo.com/) (Python) + [uv](https://github.com/astral-sh/uv) (Gestor de paquetes ultrarrápido)
 * **Frontend**: ⚛️ [React](https://react.dev/) + [Vite](https://vitejs.dev/)
 * **Estilos**: 🎨 [TailwindCSS](https://tailwindcss.com/)
 * **Base de Datos**: 🐘 [PostgreSQL](https://www.postgresql.org/)
