@@ -107,7 +107,16 @@ Si deseas ejecutar los servicios fuera de Docker para desarrollo:
 
 ```bash
 cd backend
-pip install -r requirements.txt
+# Crear entorno virtual (opcional pero recomendado)
+uv venv
+
+# Activar entorno
+# Windows: .venv\Scripts\activate
+# Linux/Mac: source .venv/bin/activate
+
+# Instalar dependencias con uv (¡Ultrarrápido!)
+uv pip install -r requirements.txt
+
 uvicorn app.main:app --reload
 ```
 
