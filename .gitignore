@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Data files
+*.xlsx
+*.csv
+import_data.xlsx
+clean_export.xlsx
+
+# Node
+node_modules/
+dist/
+build/
+.env
