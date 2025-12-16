@@ -102,26 +102,30 @@ export default function Dashboard() {
         }
     };
 
-    const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImport = async (event: React.ChangeEvent<HTMLInputElement>, type: 'clean' | 'legacy') => {
         const file = event.target.files?.[0];
         if (!file) return;
 
         const formData = new FormData();
         formData.append('file', file);
 
+        const endpoint = type === 'legacy' ? '/cases-io/import-legacy' : '/cases-io/import';
+
         try {
-            await api.post('/cases-io/import', formData, {
+            const res = await api.post(endpoint, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             // Refresh cases
             queryClient.invalidateQueries({ queryKey: ['cases'] });
             queryClient.invalidateQueries({ queryKey: ['stats'] });
-            showToast('success', 'Importación Exitosa', 'Los casos han sido importados correctamente.');
-            // window.location.reload(); // Removed manual reload
-        } catch (error) {
+            showToast('success', 'Importación Exitosa', res.data.message || 'Los casos han sido importados correctamente.');
+        } catch (error: any) {
             console.error('Error importing cases:', error);
-            alert('Error importing cases. Please check the file format.');
+            showToast('error', 'Error Importación', error.response?.data?.detail || 'Error al procesar el archivo.');
         }
+
+        // Reset input
+        event.target.value = '';
     };
 
     const handleExportPDF = () => {
@@ -251,18 +255,37 @@ export default function Dashboard() {
 
                         <input
                             type="file"
-                            id="import-file"
+                            id="import-file-clean"
                             className="hidden"
                             accept=".xlsx,.xls,.csv"
-                            onChange={handleImport}
+                            onChange={(e) => handleImport(e, 'clean')}
                         />
-                        <label
-                            htmlFor="import-file"
-                            className="flex items-center justify-center w-9 h-9 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
-                            title="Importar"
-                        >
-                            <Download size={16} />
-                        </label>
+                        <input
+                            type="file"
+                            id="import-file-legacy"
+                            className="hidden"
+                            accept=".xlsx,.xls"
+                            onChange={(e) => handleImport(e, 'legacy')}
+                        />
+
+                        <div className="relative group">
+                            <button
+                                className="flex items-center justify-center w-9 h-9 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors"
+                                title="Importar"
+                            >
+                                <Download size={16} />
+                            </button>
+                            <div className="absolute right-0 top-10 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-1 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-50">
+                                <label htmlFor="import-file-clean" className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded cursor-pointer">
+                                    <RefreshCw size={14} className="text-emerald-500" />
+                                    Restaurar Backup
+                                </label>
+                                <label htmlFor="import-file-legacy" className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded cursor-pointer border-t border-slate-100 dark:border-slate-700/50 mt-1 pt-2">
+                                    <FileText size={14} className="text-orange-500" />
+                                    Importar Bitácora
+                                </label>
+                            </div>
+                        </div>
 
                         <Button
                             variant="outline"
