@@ -99,7 +99,7 @@ export default function Layout() {
                 {/* Sidebar Footer */}
                 <div className="p-4 border-t border-vscode-light-border dark:border-vscode-border flex flex-col gap-4">
                     <div className={clsx("flex items-center gap-2", isCollapsed ? "justify-center" : "")}>
-                        <UserMenu isCollapsed={isCollapsed} appVersion="v2.2.2" />
+                        <UserMenu isCollapsed={isCollapsed} appVersion="v2.2.3" />
                     </div>
                 </div>
             </aside >
