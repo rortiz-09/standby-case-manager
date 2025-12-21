@@ -8,6 +8,7 @@ const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const CaseForm = lazy(() => import('./pages/CaseForm'));
 const UserManagement = lazy(() => import('./pages/UserManagement'));
+const Developers = lazy(() => import('./pages/Developers'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Premium loading spinner
@@ -53,6 +54,7 @@ function App() {
                                     <Route path="cases/new" element={<CaseForm />} />
                                     <Route path="cases/:id" element={<CaseForm />} />
                                     <Route path="users" element={<UserManagement />} />
+                                    <Route path="developers" element={<Developers />} />
                                     <Route path="*" element={<NotFound />} />
                                 </Route>
                             </Routes>

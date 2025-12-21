@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Users, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, Menu, ChevronLeft, ChevronRight, Code } from 'lucide-react';
 import { clsx } from 'clsx';
 import UserMenu from './UserMenu';
 
@@ -33,6 +33,7 @@ export default function Layout() {
             { path: '/', label: 'Tablero', icon: LayoutDashboard, roles: ['CONSULTA', 'INGRESO', 'ADMIN'] },
             { path: '/cases/new', label: 'Nuevo Caso', icon: PlusCircle, roles: ['INGRESO', 'ADMIN'] },
             { path: '/users', label: 'Usuarios', icon: Users, roles: ['ADMIN'] },
+            { path: '/developers', label: 'Desarrolladores', icon: Code, roles: ['CONSULTA', 'INGRESO', 'ADMIN'] },
         ];
         return navItems.filter(item => user && item.roles.includes(user.rol));
     }, [user]);
@@ -104,7 +105,7 @@ export default function Layout() {
                                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.rol}</p>
                                 <div className="mt-2 pt-2 border-t border-slate-200 dark:border-vscode-border">
                                     <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center font-mono">
-                                        System v1.5.2
+                                        v1.5.4
                                     </p>
                                 </div>
                             </div>
