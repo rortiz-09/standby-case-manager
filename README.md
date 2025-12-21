@@ -76,8 +76,9 @@ Una vez que los contenedores estén arriba, accede a:
 
 El sistema se inicializa con un usuario administrador para que puedas empezar de inmediato:
 
-* 📧 **Email**: `admin@example.com`
-* 🔑 **Password**: `admin123`
+* 📧 **Admin**: `admin@standby.com` / 🔑 `admin123`
+* 📧 **Ingreso**: `ingreso@standby.com` / 🔑 `ingreso123`
+* 📧 **Consulta**: `consulta@standby.com` / 🔑 `consulta123`
 
 > ⚠️ **Importante**: Se recomienda cambiar esta contraseña inmediatamente después del primer inicio de sesión.
 

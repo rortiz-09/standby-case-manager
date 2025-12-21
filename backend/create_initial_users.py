@@ -12,7 +12,9 @@ async def create_users():
     async with AsyncSession(engine) as session:
         # Define users to create
         users_data = [
-            {"nombre": "Admin", "email": "admin@example.com", "password": "admin123", "rol": UserRole.ADMIN},
+            {"nombre": "Administrador", "email": "admin@standby.com", "password": "admin123", "rol": UserRole.ADMIN},
+            {"nombre": "Operador Ingreso", "email": "ingreso@standby.com", "password": "ingreso123", "rol": UserRole.INGRESO},
+            {"nombre": "Usuario Consulta", "email": "consulta@standby.com", "password": "consulta123", "rol": UserRole.CONSULTA},
         ]
 
         for user_data in users_data:
@@ -31,7 +33,9 @@ async def create_users():
                 )
                 session.add(new_user)
             else:
-                print(f"User already exists: {user_data['email']}")
+                print(f"User exists, updating password: {user_data['email']}")
+                user.hashed_password = get_password_hash(user_data["password"])
+                session.add(user)
         
         await session.commit()
 
