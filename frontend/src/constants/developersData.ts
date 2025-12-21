@@ -22,5 +22,27 @@ export const DEVELOPERS: DeveloperProfile[] = [
             { platform: 'github', url: 'https://github.com' },
             { platform: 'twitter', url: 'https://twitter.com' }
         ]
+    },
+    {
+        id: '3',
+        name: 'Dev Three',
+        role: 'Backend Developer',
+        bio: 'Especialista en arquitecturas robustas y optimización de bases de datos.',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Dev+Three&background=random',
+        socialLinks: [
+            { platform: 'github', url: 'https://github.com' },
+            { platform: 'linkedin', url: 'https://linkedin.com' }
+        ]
+    },
+    {
+        id: '4',
+        name: 'Dev Four',
+        role: 'DevOps Engineer',
+        bio: 'Automatizando todo lo que se mueve. Fanático de Docker y CI/CD.',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Dev+Four&background=random',
+        socialLinks: [
+            { platform: 'github', url: 'https://github.com' },
+            { platform: 'website', url: 'https://example.com' }
+        ]
     }
 ];
