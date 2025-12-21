@@ -47,7 +47,7 @@ La forma más sencilla de ejecutar el proyecto es utilizando **Docker**. Olvída
 Clona el repositorio y navega al directorio:
 
 ```bash
-git clone <tu-repositorio>
+git clone git@github.com:rortiz-09/standby-case-manager.git
 cd standby-case-manager
 ```
 
