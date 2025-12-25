@@ -29,6 +29,8 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(cases.router)
 app.include_router(users.router)
+from app.routers import import_export
+app.include_router(import_export.router)
 
 @app.on_event("startup")
 async def on_startup():

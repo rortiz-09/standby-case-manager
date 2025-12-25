@@ -9,3 +9,5 @@ python-multipart
 asyncpg
 redis
 fastapi-cache2[redis]
+pandas
+openpyxl

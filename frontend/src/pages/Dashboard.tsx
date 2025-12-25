@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Calendar, AlertCircle, ArrowRight, Activity } from 'lucide-react';
+import { Search, Filter, Calendar, AlertCircle, ArrowRight, Activity, Upload, Download, FileSpreadsheet } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { clsx } from 'clsx';
@@ -75,16 +75,81 @@ export default function Dashboard() {
         }
     };
 
+    const handleExport = async (format: 'tsv' | 'xlsx' | 'csv' = 'tsv') => {
+        try {
+            const response = await api.get(`/cases-io/export?format=${format}`, {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `cases_export.${format}`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+        } catch (error) {
+            console.error('Error exporting cases:', error);
+            // Ideally show a toast here
+        }
+    };
+
+    const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            await api.post('/cases-io/import', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            // Refresh cases
+            window.location.reload(); // Simple reload for now, or invalidate queries
+        } catch (error) {
+            console.error('Error importing cases:', error);
+            alert('Error importing cases. Please check the file format.');
+        }
+    };
+
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Tablero de Casos</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Monitoreo y gestión de incidentes en tiempo real.</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-                    <Activity size={14} className="text-indigo-500" />
-                    <span>{cases.length} casos encontrados</span>
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+                        <Activity size={14} className="text-indigo-500" />
+                        <span>{cases.length} casos encontrados</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="file"
+                            id="import-file"
+                            className="hidden"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleImport}
+                        />
+                        <label
+                            htmlFor="import-file"
+                            className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
+                        >
+                            <Download size={16} />
+                            Importar
+                        </label>
+
+                        <Button
+                            variant="outline"
+                            className="flex items-center gap-2"
+                            onClick={() => handleExport('xlsx')}
+                        >
+                            <Upload size={16} />
+                            Exportar Excel
+                        </Button>
+                    </div>
                 </div>
             </div>
 
